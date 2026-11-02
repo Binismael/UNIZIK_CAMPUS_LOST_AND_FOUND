@@ -33,7 +33,7 @@ const NAV = [
 export function Sidebar() {
   const active = activeKey(useLocation().pathname);
   return (
-    <aside className="sticky top-0 hidden h-screen w-[255px] shrink-0 flex-col gap-4 bg-brand px-4 py-6 lg:flex">
+    <aside className="hidden h-full w-[255px] overflow-y-auto shrink-0 flex-col gap-4 bg-brand px-4 py-6 lg:flex">
       <Link to="/" className="px-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber rounded-lg">
         <Logo light />
       </Link>

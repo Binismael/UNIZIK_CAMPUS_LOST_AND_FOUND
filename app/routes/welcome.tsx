@@ -45,7 +45,7 @@ export default function Welcome() {
         </div>
       </div>
 
-      <div className="hidden min-h-screen lg:flex">
+      <div className="hidden min-h-full lg:flex">
         <section className="flex w-1/2 flex-col justify-center bg-brand px-14">
           <Logo light />
           <h1 className="mt-8 max-w-[560px] font-display text-[46px] font-bold leading-[1.1] text-white">

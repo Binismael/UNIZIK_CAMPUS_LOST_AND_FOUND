@@ -25,9 +25,9 @@ export default function AppLayout() {
   }
 
   return (
-    <div className="flex min-h-full bg-white text-ink">
+    <div className="flex h-full bg-white text-ink">
       <Sidebar />
-      <div className="min-w-0 flex-1 pb-28 lg:pb-0">
+      <div className="min-w-0 flex-1 overflow-y-auto pb-28 lg:pb-0">
         <Outlet />
       </div>
       <BottomNav />

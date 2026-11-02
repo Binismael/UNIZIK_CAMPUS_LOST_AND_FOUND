@@ -58,7 +58,7 @@ export function SplitAuth({
   children: React.ReactNode;
 }) {
   return (
-    <div className="hidden min-h-screen lg:flex">
+    <div className="hidden min-h-full lg:flex">
       <section className={cn("flex w-1/2 flex-col justify-center bg-brand px-14", leftClassName)}>
         <div className="max-w-[560px]">
           <Logo light />
