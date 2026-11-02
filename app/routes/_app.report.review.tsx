@@ -1,4 +1,3 @@
-import { useActionMutation } from "@agent-native/core/client/hooks";
 import { IconSparkles } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
@@ -7,6 +6,7 @@ import { toast } from "sonner";
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, Btn, PhotoBox, TextInput } from "@/components/campus/ui";
 import { CATEGORIES, errorMessage, guessCategory, reportDraft, type Category } from "@/lib/campus";
+import { useCreateItem, useTagItem } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Report found item · CampusLost&Found" }];
@@ -17,8 +17,8 @@ type Form = { title: string; colour: string; brand: string; marks: string; locat
 export default function ReportReview() {
   const navigate = useNavigate();
   const [photo] = useState(() => reportDraft.get());
-  const tag = useActionMutation("tag-item");
-  const create = useActionMutation("create-item");
+  const tag = useTagItem();
+  const create = useCreateItem();
   const started = useRef(false);
   const [category, setCategory] = useState<Category | null>(null);
   const [summary, setSummary] = useState("");
@@ -33,7 +33,7 @@ export default function ReportReview() {
     if (started.current) return;
     started.current = true;
     tag.mutate(
-      { image: photo },
+      photo,
       {
         onSuccess: ({ tags }) => {
           if (!tags) {

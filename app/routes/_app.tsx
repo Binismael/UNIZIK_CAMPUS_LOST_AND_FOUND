@@ -1,21 +1,26 @@
-import { useActionQuery } from "@agent-native/core/client/hooks";
 import { useEffect } from "react";
 import { Outlet, useNavigate } from "react-router";
 
+import { useAuth } from "@/components/campus/session";
 import { BottomNav, Sidebar } from "@/components/campus/shell";
 import { Logo } from "@/components/campus/ui";
+import { useMyProfile, useRealtimeRefresh } from "@/lib/campus-data";
 
 export default function AppLayout() {
   const navigate = useNavigate();
-  const { data, isLoading, isFetching } = useActionQuery("get-my-profile", {}, { refetchOnMount: "always" });
+  const { session, loading } = useAuth();
+  const { data, isLoading } = useMyProfile();
+  useRealtimeRefresh();
+
+  const signedOut = !loading && !session;
   const needsProfile = Boolean(data && !data.profile?.profileComplete);
-  const incomplete = needsProfile && !isFetching;
 
   useEffect(() => {
-    if (incomplete) navigate("/complete-profile", { replace: true });
-  }, [incomplete, navigate]);
+    if (signedOut) navigate("/welcome", { replace: true });
+    else if (needsProfile) navigate("/complete-profile", { replace: true });
+  }, [signedOut, needsProfile, navigate]);
 
-  if (isLoading || needsProfile) {
+  if (loading || signedOut || isLoading || !data || needsProfile) {
     return (
       <div className="flex min-h-full flex-col items-center justify-center gap-4 bg-white" role="status">
         <Logo />

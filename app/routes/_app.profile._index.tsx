@@ -1,8 +1,6 @@
-import { useActionMutation, useActionQuery } from "@agent-native/core/client/hooks";
-import { signOut } from "@agent-native/core/client/sign-out";
 import { IconBox, IconChevronRight, IconClipboardCheck } from "@tabler/icons-react";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { AppPage } from "@/components/campus/shell";
@@ -10,6 +8,8 @@ import { Btn, initials, shortName } from "@/components/campus/ui";
 import { Switch } from "@/components/ui/switch";
 import { HELP_EMAIL } from "@/lib/campus-options";
 import { errorMessage } from "@/lib/campus";
+import { supabase } from "@/lib/supabase";
+import { useMyProfile, useUpdatePreferences } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Profile · CampusLost&Found" }];
@@ -19,14 +19,18 @@ const rowCls =
   "flex min-h-[64px] items-center justify-between px-6 text-[17px] font-bold text-brand lg:min-h-[58px] lg:px-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-link";
 
 export default function Profile() {
-  const { data } = useActionQuery("get-my-profile", {});
-  const prefs = useActionMutation("update-preferences");
+  const { data } = useMyProfile();
+  const prefs = useUpdatePreferences();
+  const navigate = useNavigate();
   const [signingOut, setSigningOut] = useState(false);
   const profile = data?.profile;
   if (!data || !profile) return null;
 
   const toggle = (key: "matchAlerts" | "notifications", value: boolean) =>
-    prefs.mutate({ [key]: value }, { onError: (err) => toast.error(errorMessage(err)) });
+    prefs.mutate(
+      { matchAlerts: profile.matchAlerts, notifications: profile.notifications, [key]: value },
+      { onError: (err) => toast.error(errorMessage(err)) },
+    );
 
   return (
     <AppPage title="Profile" brandHeader>
@@ -81,7 +85,8 @@ export default function Profile() {
             disabled={signingOut}
             onClick={async () => {
               setSigningOut(true);
-              await signOut({ redirectTo: "/welcome" });
+              await supabase.auth.signOut();
+              navigate("/welcome", { replace: true });
             }}
           >
             Sign out

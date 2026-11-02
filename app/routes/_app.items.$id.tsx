@@ -1,4 +1,3 @@
-import { useActionMutation, useActionQuery } from "@agent-native/core/client/hooks";
 import { IconMapPin } from "@tabler/icons-react";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
@@ -7,6 +6,7 @@ import { toast } from "sonner";
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, Btn, BtnLink, EmptyState, Notice, PhotoBox, Pill, Tag } from "@/components/campus/ui";
 import { dayAndTime, errorMessage, itemTags } from "@/lib/campus";
+import { useCreateClaim, useItem, useReportItem } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Item details · CampusLost&Found" }];
@@ -15,7 +15,7 @@ export function meta() {
 function ReportPost({ itemId }: { itemId: string }) {
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
-  const report = useActionMutation("report-item");
+  const report = useReportItem();
   if (!open) {
     return (
       <button type="button" onClick={() => setOpen(true)} className="min-h-11 self-center text-sm font-bold text-link hover:underline">
@@ -60,8 +60,8 @@ function ReportPost({ itemId }: { itemId: string }) {
 export default function ItemDetails() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading, isError } = useActionQuery("get-item", { id });
-  const claim = useActionMutation("create-claim");
+  const { data, isLoading, isError } = useItem(id);
+  const claim = useCreateClaim();
   const [proof, setProof] = useState("");
   const [proofError, setProofError] = useState<string | null>(null);
 

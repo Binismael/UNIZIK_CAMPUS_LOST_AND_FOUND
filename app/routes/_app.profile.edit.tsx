@@ -1,4 +1,3 @@
-import { useActionMutation, useActionQuery } from "@agent-native/core/client/hooks";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
@@ -6,6 +5,7 @@ import { ProfileForm } from "@/components/campus/profile-form";
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader } from "@/components/campus/ui";
 import { errorMessage } from "@/lib/campus";
+import { useMyProfile, useSaveProfile } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Edit profile · CampusLost&Found" }];
@@ -13,8 +13,8 @@ export function meta() {
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const { data } = useActionQuery("get-my-profile", {});
-  const save = useActionMutation("save-profile");
+  const { data } = useMyProfile();
+  const save = useSaveProfile();
   const p = data?.profile;
   if (!data || !p) return null;
 
@@ -27,7 +27,7 @@ export default function EditProfile() {
           email={data.email}
           defaults={{
             fullName: p.fullName,
-            admissionNumber: p.admissionNumber ?? "",
+            admissionNumber: p.admissionNumber,
             faculty: p.faculty,
             department: p.department,
             level: p.level,

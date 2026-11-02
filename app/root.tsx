@@ -1,27 +1,16 @@
 import { configureTracking } from "@agent-native/core/client/analytics";
 import { appPath } from "@agent-native/core/client/api-path";
-import { useDbSync } from "@agent-native/core/client/hooks";
 import { createAgentNativeQueryClient } from "@agent-native/core/client/hooks";
 import { getThemeInitScript } from "@agent-native/core/client/ui";
-import { ClientOnly } from "@agent-native/toolkit/app/shared";
 import { AppProviders } from "@agent-native/toolkit/app/providers";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  Links,
-  Meta,
-  Outlet,
-  Scripts,
-  ScrollRestoration,
-  useLocation,
-} from "react-router";
+import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import type { LinksFunction } from "react-router";
 
+import { SessionProvider } from "@/components/campus/session";
 import { Layout as AppLayout } from "@/components/layout/Layout";
 import { AppToolkitProvider } from "@/components/ui/toolkit-provider";
-import { useNavigationState } from "@/hooks/use-navigation-state";
 import { APP_NAME, APP_TITLE } from "@/lib/app-config";
-import { TAB_ID } from "@/lib/tab-id";
 
 import stylesheet from "./global.css?url";
 
@@ -73,37 +62,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DbSyncSetup() {
-  const qc = useQueryClient();
-  useNavigationState();
-  useDbSync({
-    queryClient: qc,
-    ignoreSource: TAB_ID,
-  });
-  return null;
-}
-
-// Must match workspaceAppPublicPaths in server/plugins/auth.ts
-const PUBLIC_PATHS = ["/welcome", "/signin", "/create-account"];
-
+// Supabase Auth gates the screens (see app/routes/_app.tsx), so every page is
+// public to the framework's own session gate.
 export default function Root() {
   const [queryClient] = useState(() => createAgentNativeQueryClient());
-  const location = useLocation();
-  const isPublicPath = PUBLIC_PATHS.includes(location.pathname);
   return (
     <AppToolkitProvider>
-      <AppProviders
-        queryClient={queryClient}
-        isPublicPath={isPublicPath}
-        defaultTheme="light"
-        signedOutHref={() => "/welcome"}
-      >
-        <ClientOnly>
-          <DbSyncSetup />
-        </ClientOnly>
-        <AppLayout>
-          <Outlet />
-        </AppLayout>
+      <AppProviders queryClient={queryClient} isPublicPath disableWebMcp defaultTheme="light">
+        <SessionProvider>
+          <AppLayout>
+            <Outlet />
+          </AppLayout>
+        </SessionProvider>
       </AppProviders>
     </AppToolkitProvider>
   );

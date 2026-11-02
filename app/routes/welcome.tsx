@@ -1,4 +1,8 @@
 import { IconCamera, IconClipboardCheck, IconSparkles } from "@tabler/icons-react";
+import { useEffect } from "react";
+import { useNavigate } from "react-router";
+
+import { useAuth } from "@/components/campus/session";
 
 import { BtnLink, Logo } from "@/components/campus/ui";
 
@@ -13,6 +17,12 @@ const STEPS = [
 ];
 
 export default function Welcome() {
+  const navigate = useNavigate();
+  const { session } = useAuth();
+  useEffect(() => {
+    if (session) navigate("/", { replace: true });
+  }, [session, navigate]);
+
   return (
     <>
       <div className="flex min-h-full flex-col bg-brand px-6 pb-8 pt-12 lg:hidden">

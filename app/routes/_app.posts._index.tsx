@@ -1,14 +1,14 @@
-import { useActionQuery } from "@agent-native/core/client/hooks";
 
 import { AppPage } from "@/components/campus/shell";
 import { BtnLink, CardSkeleton, EmptyState, ItemCard, type PillKind } from "@/components/campus/ui";
+import { useMyPosts } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "My posts · CampusLost&Found" }];
 }
 
 export default function MyPosts() {
-  const { data, isLoading, isError } = useActionQuery("list-my-posts", {});
+  const { data, isLoading, isError } = useMyPosts();
   return (
     <AppPage title="My posts" brandHeader>
       <h1 className="mb-5 text-[28px] font-bold text-ink lg:text-[26px]">My posts</h1>

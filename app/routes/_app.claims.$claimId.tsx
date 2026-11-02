@@ -1,9 +1,9 @@
-import { useActionQuery } from "@agent-native/core/client/hooks";
 import { IconBrandWhatsapp, IconCheck, IconHome, IconPhone } from "@tabler/icons-react";
 import { useParams } from "react-router";
 
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, BtnLink, EmptyState, ItemCard, Notice, Stepper } from "@/components/campus/ui";
+import { useHandoverContact } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Handover · CampusLost&Found" }];
@@ -16,7 +16,7 @@ function waLink(phone: string) {
 
 export default function ClaimHandover() {
   const { claimId = "" } = useParams();
-  const { data, isLoading, isError } = useActionQuery("get-handover-contact", { claimId });
+  const { data, isLoading, isError } = useHandoverContact(claimId);
 
   return (
     <AppPage title="My claims">

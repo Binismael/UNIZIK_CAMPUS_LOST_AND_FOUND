@@ -1,8 +1,10 @@
 import { IconCamera } from "@tabler/icons-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { AuthTabs, OrDivider, SplitAuth, authApi } from "@/components/campus/auth";
+import { useAuth } from "@/components/campus/session";
 import { Btn, Logo, Pill, TextInput } from "@/components/campus/ui";
 import { errorMessage } from "@/lib/campus";
 
@@ -10,11 +12,51 @@ export function meta() {
   return [{ title: "Sign in · CampusLost&Found" }];
 }
 
+function NewPasswordForm() {
+  const navigate = useNavigate();
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  return (
+    <form
+      className="flex flex-col gap-4"
+      noValidate
+      onSubmit={async (e) => {
+        e.preventDefault();
+        if (password.length < 8) {
+          toast.error("Password must be at least 8 characters.");
+          return;
+        }
+        setBusy(true);
+        try {
+          await authApi.updatePassword(password);
+          toast.success("Password updated.");
+          navigate("/", { replace: true });
+        } catch (err) {
+          toast.error(errorMessage(err));
+          setBusy(false);
+        }
+      }}
+    >
+      <h2 className="text-xl font-bold text-ink">Set a new password</h2>
+      <TextInput label="New password" type="password" autoComplete="new-password" placeholder="At least 8 characters" value={password} onChange={(e) => setPassword(e.target.value)} />
+      <Btn type="submit" disabled={busy}>{busy ? "Saving…" : "Save password"}</Btn>
+    </form>
+  );
+}
+
 function SignInForm() {
+  const navigate = useNavigate();
+  const { session, recovery } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (session && !recovery) navigate("/", { replace: true });
+  }, [session, recovery, navigate]);
+
+  if (recovery) return <NewPasswordForm />;
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
@@ -22,7 +64,7 @@ function SignInForm() {
     setBusy(true);
     try {
       await authApi.login(email.trim(), password);
-      window.location.replace("/");
+      navigate("/", { replace: true });
     } catch (err) {
       setError(errorMessage(err, "Wrong email or password."));
       setBusy(false);

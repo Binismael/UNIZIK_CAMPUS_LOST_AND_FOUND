@@ -1,4 +1,3 @@
-import { useActionQuery } from "@agent-native/core/client/hooks";
 import { useState } from "react";
 
 import { SearchBox } from "@/components/campus/search-box";
@@ -6,6 +5,7 @@ import { AppPage } from "@/components/campus/shell";
 import { CardSkeleton, EmptyState, ItemCard, BtnLink } from "@/components/campus/ui";
 import { CATEGORY_CHIPS } from "@/lib/campus";
 import { cn } from "@/lib/utils";
+import { useRecentItems } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Home · CampusLost&Found" }];
@@ -13,7 +13,7 @@ export function meta() {
 
 export default function Home() {
   const [category, setCategory] = useState<string>("All");
-  const { data, isLoading, isError } = useActionQuery("list-items", { category, limit: 4 });
+  const { data, isLoading, isError } = useRecentItems(category, 4);
 
   return (
     <AppPage title="Home" brandHeader>

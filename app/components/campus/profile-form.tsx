@@ -21,7 +21,7 @@ export const campusSchema = z.object({
 
 const accountSchema = campusSchema.extend({
   email: z.string().trim().email("Enter a valid email"),
-  password: z.string().min(12, "Password must be at least 12 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
 });
 
 export type CampusValues = z.infer<typeof campusSchema>;
@@ -93,7 +93,7 @@ export function ProfileForm({
           <div className={grid}>
             <TextInput label="Full name" placeholder="Chidi Eze" autoComplete="name" error={errors.fullName?.message} {...register("fullName")} />
             <TextInput label="Student email" type="email" placeholder="you@unizik.edu.ng" autoComplete="email" error={errors.email?.message} {...register("email")} />
-            <TextInput label="Password" type="password" placeholder="At least 12 characters" autoComplete="new-password" error={errors.password?.message} {...register("password")} />
+            <TextInput label="Password" type="password" placeholder="At least 8 characters" autoComplete="new-password" error={errors.password?.message} {...register("password")} />
           </div>
           <h2 className="mt-2 text-xl font-bold text-ink">Campus details</h2>
         </>

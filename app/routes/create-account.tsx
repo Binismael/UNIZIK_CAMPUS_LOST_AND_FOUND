@@ -1,7 +1,6 @@
-import { useActionMutation } from "@agent-native/core/client/hooks";
-import { IconChevronLeft } from "@tabler/icons-react";
+import { IconChevronLeft, IconMailCheck } from "@tabler/icons-react";
 import { useState } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 
 import { OrDivider, SplitAuth, authApi } from "@/components/campus/auth";
@@ -14,20 +13,37 @@ export function meta() {
 }
 
 function CreateAccountBody({ twoColumn }: { twoColumn: boolean }) {
+  const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
-  const saveProfile = useActionMutation("save-profile");
+  const [sentTo, setSentTo] = useState<string | null>(null);
 
-  async function onSubmit(values: AccountValues) {
+  async function onSubmit({ email, password, ...campus }: AccountValues) {
     setBusy(true);
     try {
-      await authApi.signUp(values.email, values.password, values.fullName);
-      const { email: _e, password: _p, ...campus } = values;
-      await saveProfile.mutateAsync(campus);
-      window.location.replace("/");
+      const { needsConfirmation } = await authApi.signUp(email.trim(), password, campus);
+      if (needsConfirmation) {
+        setSentTo(email.trim());
+        setBusy(false);
+      } else {
+        navigate("/", { replace: true });
+      }
     } catch (err) {
       toast.error(errorMessage(err));
       setBusy(false);
     }
+  }
+
+  if (sentTo) {
+    return (
+      <div className="flex flex-col items-center gap-3 rounded-2xl bg-surface px-6 py-10 text-center">
+        <IconMailCheck size={40} className="text-brand" />
+        <h2 className="text-xl font-bold text-ink">Check your email</h2>
+        <p className="max-w-sm text-[15px] text-muted-ink">
+          We sent a confirmation link to <span className="font-bold text-ink">{sentTo}</span>. Tap it to finish creating your account, then sign in.
+        </p>
+        <Link to="/signin" className="mt-2 font-bold text-link hover:underline">Go to Sign in</Link>
+      </div>
+    );
   }
 
   return (

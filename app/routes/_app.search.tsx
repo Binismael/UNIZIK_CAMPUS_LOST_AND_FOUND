@@ -1,10 +1,10 @@
-import { useActionQuery } from "@agent-native/core/client/hooks";
 import { IconSparkles } from "@tabler/icons-react";
 import { useSearchParams } from "react-router";
 
 import { SearchBox } from "@/components/campus/search-box";
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, CardSkeleton, EmptyState, ItemCard, Tag } from "@/components/campus/ui";
+import { useSearch } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Search results · CampusLost&Found" }];
@@ -13,7 +13,7 @@ export function meta() {
 export default function SearchResults() {
   const [params] = useSearchParams();
   const query = params.get("q")?.trim() ?? "";
-  const { data, isLoading, isError } = useActionQuery("search-items", { query }, { enabled: query.length > 0 });
+  const { data, isLoading, isError } = useSearch(query);
 
   const c = data?.criteria;
   const understood = c ? [c.category, ...c.colors, c.brand, c.marks, c.location].filter(Boolean) : [];

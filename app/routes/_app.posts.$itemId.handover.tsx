@@ -1,4 +1,3 @@
-import { useActionMutation, useActionQuery } from "@agent-native/core/client/hooks";
 import { IconCheck } from "@tabler/icons-react";
 import { useParams } from "react-router";
 import { toast } from "sonner";
@@ -6,6 +5,7 @@ import { toast } from "sonner";
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, Btn, BtnLink, EmptyState, ItemCard, Stepper, shortName } from "@/components/campus/ui";
 import { errorMessage } from "@/lib/campus";
+import { useMarkReturned, usePost } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Handover · CampusLost&Found" }];
@@ -13,8 +13,8 @@ export function meta() {
 
 export default function Handover() {
   const { itemId = "" } = useParams();
-  const { data, isLoading, isError } = useActionQuery("get-post", { itemId });
-  const markReturned = useActionMutation("mark-returned");
+  const { data, isLoading, isError } = usePost(itemId);
+  const markReturned = useMarkReturned();
 
   if (isLoading) {
     return (
@@ -62,7 +62,7 @@ export default function Handover() {
               disabled={markReturned.isPending}
               onClick={() =>
                 markReturned.mutate(
-                  { itemId },
+                  itemId,
                   {
                     onSuccess: () => toast.success("Marked as returned."),
                     onError: (err) => toast.error(errorMessage(err)),

@@ -1,14 +1,14 @@
-import { useActionQuery } from "@agent-native/core/client/hooks";
 
 import { AppPage } from "@/components/campus/shell";
 import { BtnLink, CardSkeleton, EmptyState, ItemCard } from "@/components/campus/ui";
+import { useMyClaims } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "My claims · CampusLost&Found" }];
 }
 
 export default function MyClaims() {
-  const { data, isLoading, isError } = useActionQuery("list-my-claims", {});
+  const { data, isLoading, isError } = useMyClaims();
   return (
     <AppPage title="My claims" brandHeader>
       <h1 className="mb-5 text-[28px] font-bold text-ink lg:text-[26px]">My claims</h1>

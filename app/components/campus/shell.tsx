@@ -1,4 +1,3 @@
-import { useActionQuery } from "@agent-native/core/client/hooks";
 import {
   IconBell,
   IconBox,
@@ -9,6 +8,7 @@ import {
 } from "@tabler/icons-react";
 import { Link, useLocation } from "react-router";
 
+import { useMyProfile } from "@/lib/campus-data";
 import { cn } from "@/lib/utils";
 
 import { Logo, initials } from "./ui";
@@ -97,7 +97,7 @@ export function BottomNav() {
 }
 
 function TopActions() {
-  const { data } = useActionQuery("get-my-profile", {});
+  const { data } = useMyProfile();
   const name = data?.profile?.fullName || data?.email || "";
   const hasNew = (data?.newClaims ?? 0) > 0;
   return (

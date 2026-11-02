@@ -1,10 +1,10 @@
-import { useActionMutation, useActionQuery } from "@agent-native/core/client/hooks";
 import { useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
 import { AppPage } from "@/components/campus/shell";
 import { Avatar, BackHeader, Btn, BtnLink, EmptyState, ItemCard, Notice, Stepper, shortName } from "@/components/campus/ui";
 import { errorMessage } from "@/lib/campus";
+import { useDecideClaim, usePost } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Claim to review · CampusLost&Found" }];
@@ -13,8 +13,8 @@ export function meta() {
 export default function ClaimReview() {
   const { itemId = "", claimId = "" } = useParams();
   const navigate = useNavigate();
-  const { data, isLoading, isError } = useActionQuery("get-post", { itemId });
-  const decide = useActionMutation("decide-claim");
+  const { data, isLoading, isError } = usePost(itemId);
+  const decide = useDecideClaim();
 
   if (isLoading) {
     return (

@@ -1,46 +1,68 @@
-import { appPath } from "@agent-native/core/client/api-path";
 import { toast } from "sonner";
 
+import type { CampusDetails } from "@/lib/campus-data";
+import { isGoogleSignInEnabled, supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 import { Logo } from "./ui";
 
-async function postJson(path: string, body: unknown) {
-  const res = await fetch(appPath(path), {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(body),
-  });
-  const data = (await res.json().catch(() => ({}))) as { ok?: boolean; error?: string };
-  if (!res.ok || data.error) throw new Error(data.error || "Something went wrong. Please try again.");
-  return data;
+function authError(message: string) {
+  if (/invalid login credentials/i.test(message)) return new Error("Wrong email or password.");
+  if (/email not confirmed/i.test(message)) return new Error("Confirm your email first — check your inbox for the link.");
+  if (/already registered/i.test(message)) return new Error("That email already has an account. Sign in instead.");
+  if (/database error saving new user/i.test(message)) return new Error("That admission number is already registered.");
+  return new Error(message || "Something went wrong. Please try again.");
 }
 
 export const authApi = {
-  login: (email: string, password: string) =>
-    postJson("/_agent-native/auth/login", { email, password }),
-  async signUp(email: string, password: string, name: string) {
-    await postJson("/_agent-native/auth/register", { email, password, name });
-    return postJson("/_agent-native/auth/login", { email, password });
+  async login(email: string, password: string) {
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw authError(error.message);
   },
-  requestReset: (email: string) =>
-    postJson("/_agent-native/auth/ba/request-password-reset", {
+  async signUp(email: string, password: string, details: CampusDetails) {
+    const { data: available } = await supabase.rpc("admission_number_available", {
+      p_admission_number: details.admissionNumber,
+    });
+    if (available === false) throw new Error("That admission number is already registered.");
+    const { data, error } = await supabase.auth.signUp({
       email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/`,
+        data: {
+          full_name: details.fullName.trim(),
+          admission_number: details.admissionNumber.trim(),
+          faculty: details.faculty,
+          department: details.department,
+          level: details.level,
+          residence: details.residence,
+          phone: details.phone,
+        },
+      },
+    });
+    if (error) throw authError(error.message);
+    return { needsConfirmation: !data.session };
+  },
+  async requestReset(email: string) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/signin`,
-    }),
+    });
+    if (error) throw authError(error.message);
+  },
+  async updatePassword(password: string) {
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) throw authError(error.message);
+  },
   async google(returnPath: string) {
-    try {
-      const res = await fetch(
-        appPath(`/_agent-native/google/auth-url?return=${encodeURIComponent(returnPath)}`),
-        { credentials: "include" },
-      );
-      const data = (await res.json().catch(() => ({}))) as { url?: string };
-      if (!res.ok || !data.url) throw new Error();
-      window.location.href = data.url;
-    } catch {
+    if (!(await isGoogleSignInEnabled())) {
       toast.error("Google sign-in isn't set up yet. Use your student email for now.");
+      return;
     }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}${returnPath}` },
+    });
+    if (error) toast.error("Google sign-in isn't set up yet. Use your student email for now.");
   },
 };
 
