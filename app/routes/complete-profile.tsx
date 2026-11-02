@@ -24,14 +24,14 @@ export default function CompleteProfile() {
   }, [data, isFetching, navigate]);
 
   if (isLoading || !data || (isFetching && !data.profile)) {
-    return <div className="grid min-h-screen place-items-center"><Logo /></div>;
+    return <div className="grid min-h-full place-items-center"><Logo /></div>;
   }
 
   const email = data.email;
   const name = data.profile?.fullName || session?.name || "";
 
   return (
-    <div className="min-h-screen bg-white lg:bg-surface lg:py-10">
+    <div className="min-h-full bg-white lg:bg-surface lg:py-10">
       <div className="px-5 pt-5 lg:flex lg:justify-center lg:px-0 lg:pt-0">
         <Logo />
       </div>

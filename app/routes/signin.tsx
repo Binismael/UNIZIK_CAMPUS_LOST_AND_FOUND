@@ -75,7 +75,7 @@ function SignInForm() {
 export default function SignIn() {
   return (
     <>
-      <div className="min-h-screen bg-brand lg:hidden">
+      <div className="min-h-full bg-brand lg:hidden">
         <div className="px-6 pb-14 pt-12">
           <Logo light />
           <h1 className="mt-10 font-display text-[44px] font-bold leading-tight text-white">Welcome back</h1>

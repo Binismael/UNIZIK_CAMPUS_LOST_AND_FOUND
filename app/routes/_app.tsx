@@ -17,7 +17,7 @@ export default function AppLayout() {
 
   if (isLoading || needsProfile) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-4 bg-white" role="status">
+      <div className="flex min-h-full flex-col items-center justify-center gap-4 bg-white" role="status">
         <Logo />
         <span className="text-sm text-muted-ink">Loading…</span>
       </div>

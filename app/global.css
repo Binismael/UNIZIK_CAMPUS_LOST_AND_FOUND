@@ -314,3 +314,10 @@
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.34);
 }
+
+/* Phones render the app at 75% scale; desktop (lg, ≥1024px) stays at 100%. */
+@media (max-width: 1023.98px) {
+  html {
+    zoom: 0.75;
+  }
+}

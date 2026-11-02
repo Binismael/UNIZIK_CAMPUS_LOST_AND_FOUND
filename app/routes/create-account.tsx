@@ -51,7 +51,7 @@ function CreateAccountBody({ twoColumn }: { twoColumn: boolean }) {
 export default function CreateAccount() {
   return (
     <>
-      <div className="min-h-screen bg-white px-5 pb-10 pt-5 lg:hidden">
+      <div className="min-h-full bg-white px-5 pb-10 pt-5 lg:hidden">
         <div className="flex items-center gap-4">
           <Link to="/welcome" aria-label="Back" className="grid size-11 place-items-center rounded-full bg-surface text-ink">
             <IconChevronLeft size={22} />

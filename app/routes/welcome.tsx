@@ -15,7 +15,7 @@ const STEPS = [
 export default function Welcome() {
   return (
     <>
-      <div className="flex min-h-screen flex-col bg-brand px-6 pb-8 pt-12 lg:hidden">
+      <div className="flex min-h-full flex-col bg-brand px-6 pb-8 pt-12 lg:hidden">
         <Logo light />
         <div className="mt-auto pt-16">
           <h1 className="font-display text-[40px] font-bold leading-[1.12] text-white">
