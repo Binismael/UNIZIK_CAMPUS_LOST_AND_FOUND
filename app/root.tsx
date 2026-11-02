@@ -3,10 +3,18 @@ import { appPath } from "@agent-native/core/client/api-path";
 import { useDbSync } from "@agent-native/core/client/hooks";
 import { createAgentNativeQueryClient } from "@agent-native/core/client/hooks";
 import { getThemeInitScript } from "@agent-native/core/client/ui";
+import { ClientOnly } from "@agent-native/toolkit/app/shared";
 import { AppProviders } from "@agent-native/toolkit/app/providers";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
+import {
+  Links,
+  Meta,
+  Outlet,
+  Scripts,
+  ScrollRestoration,
+  useLocation,
+} from "react-router";
 import type { LinksFunction } from "react-router";
 
 import { Layout as AppLayout } from "@/components/layout/Layout";
@@ -44,7 +52,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
         />
         {/* guard:allow-raw-color - theme-color metadata requires a concrete browser-chrome color. */}
-        <meta name="theme-color" content="#18181B" />
+        <meta name="theme-color" content="#0B3C49" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
@@ -75,12 +83,24 @@ function DbSyncSetup() {
   return null;
 }
 
+// Must match workspaceAppPublicPaths in server/plugins/auth.ts
+const PUBLIC_PATHS = ["/welcome", "/signin", "/create-account"];
+
 export default function Root() {
   const [queryClient] = useState(() => createAgentNativeQueryClient());
+  const location = useLocation();
+  const isPublicPath = PUBLIC_PATHS.includes(location.pathname);
   return (
     <AppToolkitProvider>
-      <AppProviders queryClient={queryClient}>
-        <DbSyncSetup />
+      <AppProviders
+        queryClient={queryClient}
+        isPublicPath={isPublicPath}
+        defaultTheme="light"
+        signedOutHref={() => "/welcome"}
+      >
+        <ClientOnly>
+          <DbSyncSetup />
+        </ClientOnly>
         <AppLayout>
           <Outlet />
         </AppLayout>

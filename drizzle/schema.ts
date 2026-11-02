@@ -1,27 +1,50 @@
-// App tables live here, defined with Drizzle's PostgreSQL builders. Local dev
-// runs them on PGlite and hosted deploys on Postgres.
-//
-// After editing this file, run `pnpm db:generate` and restart the dev server
-// (see `drizzle/START_HERE.md`). Example table, private to its creator unless
-// shared (see the `sharing` skill) — uncomment and adapt:
-//
-// import { sql } from "drizzle-orm";
-// import { boolean, pgTable, text } from "drizzle-orm/pg-core";
-// import {
-//   createSharesTable,
-//   ownableColumns,
-// } from "@agent-native/core/db/schema";
-//
-// export const notes = pgTable("notes", {
-//   id: text("id").primaryKey(),
-//   title: text("title").notNull(),
-//   body: text("body").notNull().default(""),
-//   archived: boolean("archived").notNull().default(false),
-//   createdAt: text("created_at").notNull().default(sql`now()`),
-//   updatedAt: text("updated_at").notNull().default(sql`now()`),
-//   ...ownableColumns(),
-// });
-//
-// export const noteShares = createSharesTable("note_shares");
+import { sql } from "drizzle-orm";
+import { boolean, pgTable, text } from "drizzle-orm/pg-core";
 
-export {};
+export const profiles = pgTable("profiles", {
+  email: text("email").primaryKey(),
+  fullName: text("full_name").notNull().default(""),
+  admissionNumber: text("admission_number").unique(),
+  faculty: text("faculty").notNull().default(""),
+  department: text("department").notNull().default(""),
+  level: text("level").notNull().default(""),
+  residence: text("residence").notNull().default(""),
+  phone: text("phone").notNull().default(""),
+  profileComplete: boolean("profile_complete").notNull().default(false),
+  matchAlerts: boolean("match_alerts").notNull().default(true),
+  notifications: boolean("notifications").notNull().default(true),
+  createdAt: text("created_at").notNull().default(sql`now()`),
+});
+
+export const items = pgTable("items", {
+  id: text("id").primaryKey(),
+  finderEmail: text("finder_email").notNull(),
+  photo: text("photo"),
+  title: text("title").notNull(),
+  category: text("category").notNull(),
+  colors: text("colors").array().notNull().default(sql`ARRAY[]::text[]`),
+  brand: text("brand").notNull().default(""),
+  marks: text("marks").notNull().default(""),
+  summary: text("summary").notNull().default(""),
+  location: text("location").notNull(),
+  status: text("status").notNull().default("found"),
+  foundAt: text("found_at").notNull().default(sql`now()`),
+});
+
+export const claims = pgTable("claims", {
+  id: text("id").primaryKey(),
+  itemId: text("item_id").notNull(),
+  claimantEmail: text("claimant_email").notNull(),
+  proofText: text("proof_text").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: text("created_at").notNull().default(sql`now()`),
+  decidedAt: text("decided_at"),
+});
+
+export const reports = pgTable("reports", {
+  id: text("id").primaryKey(),
+  itemId: text("item_id").notNull(),
+  reporterEmail: text("reporter_email").notNull(),
+  reason: text("reason").notNull(),
+  createdAt: text("created_at").notNull().default(sql`now()`),
+});
