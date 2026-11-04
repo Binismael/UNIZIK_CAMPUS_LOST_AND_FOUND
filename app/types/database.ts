@@ -61,6 +61,8 @@ export type Database = {
           found_at: string;
           id: string;
           location: string;
+          location_lat: number | null;
+          location_lng: number | null;
           marks: string;
           photo_path: string | null;
           search_text: unknown;
@@ -76,6 +78,8 @@ export type Database = {
           found_at?: string;
           id?: string;
           location: string;
+          location_lat?: number | null;
+          location_lng?: number | null;
           marks?: string;
           photo_path?: string | null;
           search_text?: unknown;
@@ -91,6 +95,8 @@ export type Database = {
           found_at?: string;
           id?: string;
           location?: string;
+          location_lat?: number | null;
+          location_lng?: number | null;
           marks?: string;
           photo_path?: string | null;
           search_text?: unknown;

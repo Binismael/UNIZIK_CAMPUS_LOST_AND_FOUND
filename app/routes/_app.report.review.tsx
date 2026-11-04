@@ -1,8 +1,9 @@
-import { IconSparkles } from "@tabler/icons-react";
+import { IconCurrentLocation, IconSparkles, IconX } from "@tabler/icons-react";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
+import { MapPreview, type Pin } from "@/components/campus/map-pin";
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, Btn, PhotoBox, TextInput } from "@/components/campus/ui";
 import { CATEGORIES, errorMessage, guessCategory, reportDraft, type Category } from "@/lib/campus";
@@ -14,6 +15,60 @@ export function meta() {
 
 type Form = { title: string; colour: string; brand: string; marks: string; location: string };
 
+const GEO_ERRORS: Record<number, string> = {
+  1: "Location access is blocked. Allow it in your browser settings, or just type the spot.",
+  2: "Your location isn't available right now. Try again outside, or just type the spot.",
+  3: "Finding your location took too long. Try again, or just type the spot.",
+};
+
+function LocationPin({ pin, onChange }: { pin: Pin | null; onChange: (pin: Pin | null) => void }) {
+  const [locating, setLocating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function locate() {
+    if (!navigator.geolocation) {
+      setError("This browser can't share your location. Just type the spot.");
+      return;
+    }
+    setLocating(true);
+    setError(null);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocating(false);
+        onChange({ lat: Number(coords.latitude.toFixed(6)), lng: Number(coords.longitude.toFixed(6)) });
+      },
+      (err) => {
+        setLocating(false);
+        setError(GEO_ERRORS[err.code] ?? GEO_ERRORS[2]!);
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 },
+    );
+  }
+
+  if (pin) {
+    return (
+      <div className="flex flex-col gap-2">
+        <MapPreview pin={pin} title="Where the item was found" />
+        <button
+          type="button"
+          onClick={() => onChange(null)}
+          className="inline-flex min-h-11 items-center gap-1.5 self-start text-sm font-bold text-muted-ink hover:text-ink"
+        >
+          <IconX size={16} aria-hidden /> Remove map pin
+        </button>
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Btn type="button" variant="secondary" className="h-12 gap-2 text-[15px]" onClick={locate} disabled={locating}>
+        <IconCurrentLocation size={20} aria-hidden /> {locating ? "Finding your location…" : "Use my current location"}
+      </Btn>
+      {error ? <p className="text-sm text-destructive" role="alert">{error}</p> : null}
+    </div>
+  );
+}
+
 export default function ReportReview() {
   const navigate = useNavigate();
   const [photo] = useState(() => reportDraft.get());
@@ -24,6 +79,7 @@ export default function ReportReview() {
   const [summary, setSummary] = useState("");
   const [aiState, setAiState] = useState<"loading" | "filled" | "failed">("loading");
   const [form, setForm] = useState<Form>({ title: "", colour: "", brand: "", marks: "", location: "" });
+  const [pin, setPin] = useState<Pin | null>(null);
 
   useEffect(() => {
     if (!photo) {
@@ -65,6 +121,7 @@ export default function ReportReview() {
         marks: form.marks.trim(),
         summary: summary.trim(),
         location: form.location.trim(),
+        pin,
         photo,
       },
       {
@@ -123,8 +180,9 @@ export default function ReportReview() {
           )}
           <div className="flex flex-col gap-1.5">
             <TextInput label="Where did you find it?" value={form.location} onChange={set("location")} placeholder="e.g. Block C, Engineering" maxLength={80} />
-            <p className="text-sm text-muted-ink">Gemini can't tell this from the photo, so type the spot yourself.</p>
+            <p className="text-sm text-muted-ink">Gemini can't tell this from the photo, so type the spot yourself. Still there? Add a map pin too.</p>
           </div>
+          <LocationPin pin={pin} onChange={setPin} />
           <Btn type="submit" disabled={!canPost || create.isPending}>
             {create.isPending ? "Posting…" : "Post found item"}
           </Btn>

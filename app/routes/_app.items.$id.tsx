@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
+import { MapPreview } from "@/components/campus/map-pin";
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, Btn, BtnLink, EmptyState, Notice, PhotoBox, Pill, Tag } from "@/components/campus/ui";
 import { dayAndTime, errorMessage, itemTags } from "@/lib/campus";
@@ -160,6 +161,7 @@ export default function ItemDetails() {
           <p className="flex items-center gap-2 text-[17px] text-muted-ink">
             <IconMapPin size={22} className="shrink-0 text-ink" /> {item.location} · {dayAndTime(item.foundAt)}
           </p>
+          {item.pin ? <MapPreview pin={item.pin} title={`Map of where the ${item.title} was found`} /> : null}
           {item.summary ? <p className="text-[15px] text-muted-ink">{item.summary}</p> : null}
           {!item.isMine ? <Notice>The finder's contact stays hidden until they approve your claim.</Notice> : null}
           {claimArea}

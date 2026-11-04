@@ -14,6 +14,7 @@ export type Item = {
   marks: string;
   summary: string;
   location: string;
+  pin: { lat: number; lng: number } | null;
   status: ItemStatus;
   foundAt: string;
   photo: string | null;
@@ -34,9 +35,11 @@ export type Profile = {
   notifications: boolean;
 };
 
-type ItemLike = Pick<ItemRow, "id" | "title" | "category" | "colors" | "brand" | "marks" | "summary" | "location" | "status" | "found_at" | "photo_path" | "finder_id">;
+type ItemLike = Pick<ItemRow, "id" | "title" | "category" | "colors" | "brand" | "marks" | "summary" | "location" | "status" | "found_at" | "photo_path" | "finder_id"> &
+  Partial<Pick<ItemRow, "location_lat" | "location_lng">>;
 
-const ITEM_COLUMNS = "id, title, category, colors, brand, marks, summary, location, status, found_at, photo_path, finder_id";
+const ITEM_COLUMNS =
+  "id, title, category, colors, brand, marks, summary, location, location_lat, location_lng, status, found_at, photo_path, finder_id";
 
 function friendlyError(err: { message?: string; code?: string } | null, fallback = "Something went wrong. Please try again.") {
   if (!err) return new Error(fallback);
@@ -64,6 +67,7 @@ async function toItems(rows: ItemLike[], uid: string | undefined): Promise<Item[
     marks: r.marks,
     summary: r.summary,
     location: r.location,
+    pin: r.location_lat != null && r.location_lng != null ? { lat: r.location_lat, lng: r.location_lng } : null,
     status: r.status,
     foundAt: r.found_at,
     photo: r.photo_path ? urls.get(r.photo_path) ?? null : null,
@@ -267,6 +271,7 @@ export function useCreateItem() {
       marks: string;
       summary: string;
       location: string;
+      pin: { lat: number; lng: number } | null;
       photo: string | null;
     }) => {
       let photoPath: string | null = null;
@@ -286,6 +291,8 @@ export function useCreateItem() {
         marks: input.marks,
         summary: input.summary,
         location: input.location,
+        location_lat: input.pin?.lat ?? null,
+        location_lng: input.pin?.lng ?? null,
         photo_path: photoPath,
       });
       if (error) throw friendlyError(error);
