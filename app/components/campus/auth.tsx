@@ -54,15 +54,27 @@ export const authApi = {
     if (error) throw authError(error.message);
   },
   async google(returnPath: string) {
-    if (!(await isGoogleSignInEnabled())) {
+    // Google refuses to load inside iframes, so embedded previews finish sign-in in a new tab.
+    // The tab is opened before any await so popup blockers still see the click.
+    const embedded = window.self !== window.top;
+    const tab = embedded ? window.open("", "_blank") : null;
+    const fail = () => {
+      tab?.close();
       toast.error("Google sign-in isn't set up yet. Use your student email for now.");
-      return;
-    }
-    const { error } = await supabase.auth.signInWithOAuth({
+    };
+    if (!(await isGoogleSignInEnabled())) return fail();
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}${returnPath}` },
+      options: { redirectTo: `${window.location.origin}${returnPath}`, skipBrowserRedirect: embedded },
     });
-    if (error) toast.error("Google sign-in isn't set up yet. Use your student email for now.");
+    if (error || !data.url) return fail();
+    if (!embedded) return;
+    if (tab) {
+      tab.location.href = data.url;
+      toast.message("Finish signing in with Google in the new tab.");
+    } else {
+      toast.error("Your browser blocked the Google sign-in tab. Allow pop-ups for this site and try again.");
+    }
   },
 };
 
