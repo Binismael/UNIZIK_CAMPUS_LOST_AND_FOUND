@@ -3,7 +3,7 @@ import { toast } from "sonner";
 
 import { AppPage } from "@/components/campus/shell";
 import { Avatar, BackHeader, Btn, BtnLink, EmptyState, ItemCard, Notice, Stepper, shortName } from "@/components/campus/ui";
-import { errorMessage } from "@/lib/campus";
+import { errorMessage, parseClaimProof } from "@/lib/campus";
 import { useDecideClaim, usePost } from "@/lib/campus-data";
 
 export function meta() {
@@ -37,6 +37,7 @@ export default function ClaimReview() {
   const name = shortName(claim.claimant.fullName);
   const firstName = claim.claimant.fullName.split(" ")[0];
   const meta = [claim.claimant.department, claim.claimant.level && `${claim.claimant.level} level`].filter(Boolean).join(", ");
+  const pairs = parseClaimProof(claim.proofText);
 
   function onDecide(decision: "approve" | "reject") {
     decide.mutate(
@@ -71,8 +72,24 @@ export default function ClaimReview() {
                 <p className="text-[15px] text-muted-ink">{meta}</p>
               </div>
             </div>
-            <p className="mt-4 text-sm text-muted-ink">Proof from the owner</p>
-            <p className="mt-2 text-[19px] leading-snug text-ink lg:text-[17px]">{claim.proofText}</p>
+            {pairs ? (
+              <>
+                <p className="mt-4 text-sm text-muted-ink">Answers to the claim assistant. Check them against the item.</p>
+                <dl className="mt-3 flex flex-col gap-3">
+                  {pairs.map(({ q, a }) => (
+                    <div key={q} className="rounded-xl bg-white p-4">
+                      <dt className="text-[15px] text-muted-ink">{q}</dt>
+                      <dd className="mt-1 whitespace-pre-line break-words text-[18px] font-bold leading-snug text-ink lg:text-[17px]">{a}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </>
+            ) : (
+              <>
+                <p className="mt-4 text-sm text-muted-ink">Proof from the owner</p>
+                <p className="mt-2 whitespace-pre-line text-[19px] leading-snug text-ink lg:text-[17px]">{claim.proofText}</p>
+              </>
+            )}
           </div>
           {claim.status === "pending" ? (
             <>

@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 
 import { useAuth } from "@/components/campus/session";
+import { fallbackClaimQuestions } from "@/lib/campus";
 import { supabase } from "@/lib/supabase";
 import type { ClaimStatus, ItemRow, ItemStatus, ProfileRow } from "@/types/database";
 
@@ -312,6 +313,26 @@ export function useReportItem() {
 }
 
 // Claims ----------------------------------------------------------------------
+export function useClaimQuestions(itemId: string, category: string, enabled: boolean) {
+  const uid = useUid();
+  return useQuery({
+    queryKey: ["claim-questions", itemId, uid],
+    enabled: Boolean(uid && itemId) && enabled,
+    staleTime: Infinity,
+    retry: false,
+    queryFn: async () => {
+      const fallback = { questions: fallbackClaimQuestions(category), usedAi: false };
+      const timeout = new Promise<null>((resolve) => window.setTimeout(() => resolve(null), 7000));
+      const res = await Promise.race([
+        supabase.functions.invoke<{ questions: string[] | null }>("claim-questions", { body: { itemId } }),
+        timeout,
+      ]).catch(() => null);
+      const questions = res?.data?.questions;
+      return questions?.length === 3 ? { questions, usedAi: true } : fallback;
+    },
+  });
+}
+
 export function useCreateClaim() {
   const uid = useUid();
   const qc = useQueryClient();
