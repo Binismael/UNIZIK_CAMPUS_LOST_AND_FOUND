@@ -1,3 +1,6 @@
+import { IconChevronLeft } from "@tabler/icons-react";
+import { Link } from "react-router";
+
 import type { CampusDetails } from "@/lib/campus-data";
 import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
@@ -52,6 +55,40 @@ export const authApi = {
     if (error) throw authError(error.message);
   },
 };
+
+export function MobileAuth({
+  headline,
+  sub,
+  backTo,
+  children,
+}: {
+  headline: string;
+  sub: string;
+  backTo?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-full flex-col bg-brand lg:hidden">
+      <header className="px-6 pb-9 pt-6">
+        <div className="flex h-11 items-center gap-3">
+          {backTo ? (
+            <Link
+              to={backTo}
+              aria-label="Back"
+              className="-ml-1 grid size-11 shrink-0 place-items-center rounded-full bg-white/10 text-white hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
+            >
+              <IconChevronLeft size={22} />
+            </Link>
+          ) : null}
+          <Logo light />
+        </div>
+        <h1 className="mt-9 font-display text-[40px] font-bold leading-[1.1] text-white">{headline}</h1>
+        <p className="mt-3 max-w-[22rem] text-[17px] leading-snug text-white/75">{sub}</p>
+      </header>
+      <section className="flex flex-1 flex-col rounded-t-[32px] bg-white px-6 pb-8 pt-8">{children}</section>
+    </div>
+  );
+}
 
 export function SplitAuth({
   headline,

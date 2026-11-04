@@ -2,10 +2,12 @@ import {
   IconCamera,
   IconCheck,
   IconChevronLeft,
+  IconEye,
+  IconEyeOff,
   IconLock,
   IconSearch,
 } from "@tabler/icons-react";
-import { forwardRef, useId } from "react";
+import { forwardRef, useId, useState } from "react";
 import { Link, useNavigate } from "react-router";
 
 import { cn } from "@/lib/utils";
@@ -104,6 +106,38 @@ export const TextInput = forwardRef<
         className={cn(fieldBase, "h-12 read-only:bg-surface", className)}
         {...props}
       />
+    </Field>
+  );
+});
+
+export const PasswordInput = forwardRef<
+  HTMLInputElement,
+  Omit<React.InputHTMLAttributes<HTMLInputElement>, "type"> & { label: string; error?: string | undefined }
+>(function PasswordInput({ label, error, className, id, ...props }, ref) {
+  const autoId = useId();
+  const inputId = id ?? autoId;
+  const [shown, setShown] = useState(false);
+  return (
+    <Field label={label} error={error} htmlFor={inputId}>
+      <div className="relative">
+        <input
+          ref={ref}
+          id={inputId}
+          type={shown ? "text" : "password"}
+          aria-invalid={error ? true : undefined}
+          className={cn(fieldBase, "h-12 pr-14", className)}
+          {...props}
+        />
+        <button
+          type="button"
+          onClick={() => setShown((s) => !s)}
+          aria-label={shown ? "Hide password" : "Show password"}
+          aria-pressed={shown}
+          className="absolute inset-y-0 right-1 my-auto grid size-11 place-items-center rounded-lg text-muted-ink hover:text-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-link"
+        >
+          {shown ? <IconEyeOff size={20} /> : <IconEye size={20} />}
+        </button>
+      </div>
     </Field>
   );
 });

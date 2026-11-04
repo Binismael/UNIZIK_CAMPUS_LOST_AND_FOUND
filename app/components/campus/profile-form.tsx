@@ -1,10 +1,28 @@
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { cn } from "@/lib/utils";
 import { DEPARTMENTS_BY_FACULTY, FACULTIES, LEVELS, RESIDENCES } from "@/lib/campus-options";
 
-import { Btn, Notice, SelectInput, TextInput } from "./ui";
+import { Btn, Notice, PasswordInput, SelectInput, TextInput } from "./ui";
+
+const ACCOUNT_FIELDS = ["fullName", "email", "password"] as const;
+
+function StepProgress({ step, labels }: { step: number; labels: string[] }) {
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex gap-2" aria-hidden>
+        {labels.map((label, i) => (
+          <span key={label} className={cn("h-1.5 flex-1 rounded-full transition-colors", i <= step ? "bg-amber" : "bg-divider")} />
+        ))}
+      </div>
+      <p className="text-sm font-bold text-muted-ink">
+        Step {step + 1} of {labels.length} · <span className="text-ink">{labels[step]}</span>
+      </p>
+    </div>
+  );
+}
 
 export const campusSchema = z.object({
   fullName: z.string().trim().min(2, "Enter your full name"),
@@ -48,6 +66,7 @@ export function ProfileForm({
   submitting,
   onSubmit,
   twoColumn = true,
+  stepped = false,
 }: {
   mode: "create" | "complete";
   email?: string;
@@ -56,6 +75,7 @@ export function ProfileForm({
   submitting: boolean;
   onSubmit: (values: AccountValues) => void;
   twoColumn?: boolean;
+  stepped?: boolean;
 }) {
   const schema = mode === "create" ? accountSchema : campusSchema;
   const {
@@ -63,6 +83,7 @@ export function ProfileForm({
     handleSubmit,
     watch,
     setValue,
+    trigger,
     formState: { errors },
   } = useForm<AccountValues>({
     resolver: zodResolver(schema) as never,
@@ -84,48 +105,87 @@ export function ProfileForm({
   const grid = cn("grid gap-4", twoColumn && "lg:grid-cols-2 lg:gap-x-4 lg:gap-y-3");
 
   const facultyField = register("faculty");
+  const isStepped = stepped && mode === "create";
+  const [step, setStep] = useState(0);
+  const showAccount = mode === "create" && (!isStepped || step === 0);
+  const showCampus = !isStepped || step === 1;
+
+  function goToStep(next: number) {
+    setStep(next);
+    document.querySelector("main")?.scrollTo({ top: 0 });
+  }
+
+  async function continueToCampus() {
+    if (await trigger([...ACCOUNT_FIELDS])) goToStep(1);
+  }
+
+  const submit =
+    isStepped && step === 0
+      ? (e: React.FormEvent) => {
+          e.preventDefault();
+          void continueToCampus();
+        }
+      : handleSubmit(onSubmit);
 
   return (
-    <form noValidate onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      {mode === "create" ? (
+    <form noValidate onSubmit={submit} className="flex flex-col gap-4">
+      {isStepped ? <StepProgress step={step} labels={["Your account", "Campus details"]} /> : null}
+      {showAccount ? (
         <>
-          <h2 className="text-xl font-bold text-ink">Account</h2>
+          {isStepped ? null : <h2 className="text-xl font-bold text-ink">Account</h2>}
           <div className={grid}>
             <TextInput label="Full name" placeholder="Chidi Eze" autoComplete="name" error={errors.fullName?.message} {...register("fullName")} />
             <TextInput label="Student email" type="email" placeholder="you@unizik.edu.ng" autoComplete="email" error={errors.email?.message} {...register("email")} />
-            <TextInput label="Password" type="password" placeholder="At least 8 characters" autoComplete="new-password" error={errors.password?.message} {...register("password")} />
+            <PasswordInput label="Password" placeholder="At least 8 characters" autoComplete="new-password" error={errors.password?.message} {...register("password")} />
           </div>
-          <h2 className="mt-2 text-xl font-bold text-ink">Campus details</h2>
+          {isStepped ? (
+            <Btn type="submit" className="mt-2">Continue</Btn>
+          ) : (
+            <h2 className="mt-2 text-xl font-bold text-ink">Campus details</h2>
+          )}
         </>
       ) : null}
-      <div className={grid}>
-        {mode === "complete" ? (
-          <>
-            <TextInput label="Full name" autoComplete="name" error={errors.fullName?.message} {...register("fullName")} />
-            <TextInput label="Student email" value={email ?? ""} readOnly aria-readonly="true" />
-          </>
-        ) : null}
-        <TextInput label="Admission number" placeholder="Your admission number" error={errors.admissionNumber?.message} {...register("admissionNumber")} />
-        <SelectInput
-          label="Faculty"
-          placeholder="Select faculty"
-          options={FACULTIES}
-          error={errors.faculty?.message}
-          {...facultyField}
-          onChange={(e) => {
-            facultyField.onChange(e);
-            setValue("department", "");
-          }}
-        />
-        <SelectInput label="Department" placeholder="Select department" options={departments} disabled={!faculty} error={errors.department?.message} {...register("department")} />
-        <SelectInput label="Level" placeholder="Select level" options={LEVELS} error={errors.level?.message} {...register("level")} />
-        <SelectInput label="Hostel or residence" placeholder="Select hostel or off campus" options={RESIDENCES} error={errors.residence?.message} {...register("residence")} />
-        <TextInput label="Phone number (WhatsApp)" type="tel" inputMode="tel" placeholder="080 0000 0000" autoComplete="tel" error={errors.phone?.message} {...register("phone", { setValueAs: (v: string) => v.replace(/\s+/g, "") })} />
-      </div>
-      <Notice>Your phone number and hostel are only shared with a claimant after you approve their claim.</Notice>
-      <Btn type="submit" disabled={submitting}>
-        {submitting ? "Saving…" : submitLabel}
-      </Btn>
+      {showCampus ? (
+        <>
+          <div className={grid}>
+            {mode === "complete" ? (
+              <>
+                <TextInput label="Full name" autoComplete="name" error={errors.fullName?.message} {...register("fullName")} />
+                <TextInput label="Student email" value={email ?? ""} readOnly aria-readonly="true" />
+              </>
+            ) : null}
+            <TextInput label="Admission number" placeholder="Your admission number" error={errors.admissionNumber?.message} {...register("admissionNumber")} />
+            <SelectInput
+              label="Faculty"
+              placeholder="Select faculty"
+              options={FACULTIES}
+              error={errors.faculty?.message}
+              {...facultyField}
+              onChange={(e) => {
+                facultyField.onChange(e);
+                setValue("department", "");
+              }}
+            />
+            <SelectInput label="Department" placeholder="Select department" options={departments} disabled={!faculty} error={errors.department?.message} {...register("department")} />
+            <SelectInput label="Level" placeholder="Select level" options={LEVELS} error={errors.level?.message} {...register("level")} />
+            <SelectInput label="Hostel or residence" placeholder="Select hostel or off campus" options={RESIDENCES} error={errors.residence?.message} {...register("residence")} />
+            <TextInput label="Phone number (WhatsApp)" type="tel" inputMode="tel" placeholder="080 0000 0000" autoComplete="tel" error={errors.phone?.message} {...register("phone", { setValueAs: (v: string) => v.replace(/\s+/g, "") })} />
+          </div>
+          <Notice>Your phone number and hostel are only shared with a claimant after you approve their claim.</Notice>
+          <Btn type="submit" disabled={submitting}>
+            {submitting ? "Saving…" : submitLabel}
+          </Btn>
+          {isStepped ? (
+            <button
+              type="button"
+              onClick={() => goToStep(0)}
+              className="mx-auto min-h-11 rounded px-3 text-[17px] font-bold text-link hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-link"
+            >
+              Back to account details
+            </button>
+          ) : null}
+        </>
+      ) : null}
     </form>
   );
 }
