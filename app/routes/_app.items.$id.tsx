@@ -3,11 +3,12 @@ import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 
+import { ClaimChat } from "@/components/campus/claim-chat";
 import { MapPreview } from "@/components/campus/map-pin";
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, Btn, BtnLink, EmptyState, Notice, PhotoBox, Pill, Tag } from "@/components/campus/ui";
 import { dayAndTime, errorMessage, itemTags } from "@/lib/campus";
-import { useCreateClaim, useItem, useReportItem } from "@/lib/campus-data";
+import { useCreateClaim, useItem, useMyProfile, useReportItem } from "@/lib/campus-data";
 
 export function meta() {
   return [{ title: "Item details · CampusLost&Found" }];
@@ -63,8 +64,7 @@ export default function ItemDetails() {
   const navigate = useNavigate();
   const { data, isLoading, isError } = useItem(id);
   const claim = useCreateClaim();
-  const [proof, setProof] = useState("");
-  const [proofError, setProofError] = useState<string | null>(null);
+  const { data: me } = useMyProfile();
 
   if (isLoading) {
     return (
@@ -92,15 +92,9 @@ export default function ItemDetails() {
   const { item, myClaim } = data;
   const tags = itemTags(item);
 
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (proof.trim().length < 20) {
-      setProofError("Give a bit more detail — at least 20 characters.");
-      return;
-    }
-    setProofError(null);
+  function submit(proofText: string) {
     claim.mutate(
-      { itemId: item.id, proofText: proof.trim() },
+      { itemId: item.id, proofText },
       {
         onSuccess: () => {
           toast.success("Claim sent. We'll let you know when the finder decides.");
@@ -126,24 +120,14 @@ export default function ItemDetails() {
     claimArea = <Notice icon="none">This item has already been claimed.</Notice>;
   } else {
     claimArea = (
-      <form onSubmit={submit} className="flex flex-col gap-3" noValidate>
-        <div>
-          <label htmlFor="proof" className="text-lg font-bold text-ink">Prove it is yours</label>
-          <p id="proof-hint" className="text-[15px] text-muted-ink">Describe something only the owner would know.</p>
-        </div>
-        <textarea
-          id="proof"
-          aria-describedby="proof-hint"
-          aria-invalid={proofError ? true : undefined}
-          value={proof}
-          onChange={(e) => setProof(e.target.value)}
-          rows={4}
-          className="min-h-[110px] w-full rounded-xl border border-line px-4 py-3 text-[17px] text-ink focus:border-link focus:outline-none focus:ring-[3px] focus:ring-link/30 lg:min-h-[78px]"
-        />
-        {proofError ? <p className="text-sm text-destructive">{proofError}</p> : null}
-        {myClaim?.status === "rejected" ? <p className="text-sm text-muted-ink">Your last claim was not approved. You can try again with more detail.</p> : null}
-        <Btn type="submit" disabled={claim.isPending}>{claim.isPending ? "Sending…" : "Submit claim"}</Btn>
-      </form>
+      <ClaimChat
+        itemId={item.id}
+        category={item.category}
+        firstName={me?.profile?.fullName.trim().split(/\s+/)[0] || "there"}
+        previouslyRejected={myClaim?.status === "rejected"}
+        submitting={claim.isPending}
+        onSubmit={submit}
+      />
     );
   }
 

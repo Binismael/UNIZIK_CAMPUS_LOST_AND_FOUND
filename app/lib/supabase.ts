@@ -43,13 +43,3 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_KEY, {
     lock: async (_name, _timeout, fn) => fn(),
   },
 });
-
-export async function isGoogleSignInEnabled() {
-  try {
-    const res = await fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_KEY } });
-    const settings = (await res.json()) as { external?: { google?: boolean } };
-    return Boolean(settings.external?.google);
-  } catch {
-    return false;
-  }
-}

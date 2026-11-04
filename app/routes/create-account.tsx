@@ -1,18 +1,17 @@
-import { IconChevronLeft, IconMailCheck } from "@tabler/icons-react";
+import { IconMailCheck } from "@tabler/icons-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 
-import { OrDivider, SplitAuth, authApi } from "@/components/campus/auth";
+import { MobileAuth, SplitAuth, authApi } from "@/components/campus/auth";
 import { ProfileForm, type AccountValues } from "@/components/campus/profile-form";
-import { Btn } from "@/components/campus/ui";
 import { errorMessage } from "@/lib/campus";
 
 export function meta() {
   return [{ title: "Create account · CampusLost&Found" }];
 }
 
-function CreateAccountBody({ twoColumn }: { twoColumn: boolean }) {
+function CreateAccountBody({ twoColumn, stepped = false }: { twoColumn: boolean; stepped?: boolean }) {
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState<string | null>(null);
@@ -48,12 +47,7 @@ function CreateAccountBody({ twoColumn }: { twoColumn: boolean }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Btn variant="secondary" type="button" onClick={() => authApi.google("/complete-profile")}>
-        Sign up with Google
-      </Btn>
-      <p className="text-center text-sm text-muted-ink">With Google, we ask for your campus details right after you sign in.</p>
-      <OrDivider label="or fill in the form" />
-      <ProfileForm mode="create" submitLabel="Create account" submitting={busy} onSubmit={onSubmit} twoColumn={twoColumn} />
+      <ProfileForm mode="create" submitLabel="Create account" submitting={busy} onSubmit={onSubmit} twoColumn={twoColumn} stepped={stepped} />
       <p className="text-center text-[17px] text-muted-ink">
         Already have an account?{" "}
         <Link to="/signin" className="font-bold text-brand hover:underline">
@@ -67,16 +61,9 @@ function CreateAccountBody({ twoColumn }: { twoColumn: boolean }) {
 export default function CreateAccount() {
   return (
     <>
-      <div className="min-h-full bg-white px-5 pb-10 pt-5 lg:hidden">
-        <div className="flex items-center gap-4">
-          <Link to="/welcome" aria-label="Back" className="grid size-11 place-items-center rounded-full bg-surface text-ink">
-            <IconChevronLeft size={22} />
-          </Link>
-          <h1 className="text-[22px] font-bold text-ink">Create account</h1>
-        </div>
-        <p className="mb-4 mt-3 text-[17px] leading-snug text-muted-ink">Tell us about you so everyone on campus can trust each other.</p>
-        <CreateAccountBody twoColumn={false} />
-      </div>
+      <MobileAuth backTo="/welcome" headline="Create your account" sub="Two quick steps so finders and owners can trust each other.">
+        <CreateAccountBody twoColumn={false} stepped />
+      </MobileAuth>
       <SplitAuth
         headline="Join the campus network that gets things back."
         sub="Your campus details help finders and owners trust each other."

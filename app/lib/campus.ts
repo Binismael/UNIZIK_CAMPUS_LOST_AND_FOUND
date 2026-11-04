@@ -47,7 +47,23 @@ export function dayAndTime(value: string) {
   return `${label}, ${time}`;
 }
 
-export function compressImage(file: File, maxDim = 1600, quality = 0.72): Promise<string> {
+export const isHeicName = (file: File) => /\.(heic|heif)$/i.test(file.name) || /image\/hei[cf]/i.test(file.type);
+
+export async function compressImage(file: File, maxDim = 1600, quality = 0.72): Promise<string> {
+  try {
+    return await drawCompressed(file, maxDim, quality);
+  } catch (err) {
+    // Only Safari decodes iPhone HEIC photos natively; convert them for every other browser.
+    const { isHeic, heicTo } = await import("heic-to");
+    if (!isHeicName(file) && !(await isHeic(file).catch(() => false))) throw err;
+    const jpeg = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 }).catch(() => {
+      throw new Error("Couldn't read that iPhone photo. Try taking a new one or choosing a JPG/PNG.");
+    });
+    return drawCompressed(jpeg, maxDim, quality);
+  }
+}
+
+function drawCompressed(file: Blob, maxDim: number, quality: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -62,10 +78,42 @@ export function compressImage(file: File, maxDim = 1600, quality = 0.72): Promis
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Couldn't read that image"));
+      reject(new Error("Couldn't read that image. Try a JPG or PNG photo."));
     };
     img.src = url;
   });
+}
+
+const LOST_WHERE = "Where and roughly when did you last have it?";
+const FALLBACK_QUESTIONS: Record<string, [string, string]> = {
+  Phones: ["What is your lock screen or wallpaper picture?", "Describe the case, and any crack or scratch the photo doesn't show."],
+  IDs: ["What name and department are printed on the card?", "Is anything attached to it, like a lanyard, holder or keyring? Describe it."],
+  Chargers: ["Which device do you charge with it?", "Describe any mark, tape or damage on the cable or plug the photo doesn't show."],
+  Books: ["What is written on the first page or inside the cover?", "Name one page or section you wrote notes in or highlighted."],
+  Bags: ["Name two things that were inside the bag.", "Describe any tear, stain or keychain on it the photo doesn't show."],
+  Keys: ["How many keys are on it, and what do they open?", "Describe the keyring or any tag attached to it."],
+};
+
+export function fallbackClaimQuestions(category: string): string[] {
+  const [a, b] = FALLBACK_QUESTIONS[category] ?? [
+    "Describe something about it that the photo doesn't show.",
+    "Is anything written, stuck or attached to it? What is it?",
+  ];
+  return [a, b, LOST_WHERE];
+}
+
+export type ProofPair = { q: string; a: string };
+
+export function formatClaimProof(pairs: ProofPair[]) {
+  return pairs.map(({ q, a }) => `Q: ${q}\nA: ${a}`).join("\n\n");
+}
+
+export function parseClaimProof(text: string): ProofPair[] | null {
+  const pairs = text
+    .split(/\n{2,}/)
+    .map((block) => /^Q: ([\s\S]+?)\nA: ([\s\S]*)$/.exec(block.trim()))
+    .map((m) => (m ? { q: m[1]!.trim(), a: m[2]!.trim() } : null));
+  return pairs.length && pairs.every(Boolean) ? (pairs as ProofPair[]) : null;
 }
 
 const REPORT_PHOTO_KEY = "clf-report-photo";

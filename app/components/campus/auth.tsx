@@ -1,7 +1,8 @@
-import { toast } from "sonner";
+import { IconChevronLeft } from "@tabler/icons-react";
+import { Link } from "react-router";
 
 import type { CampusDetails } from "@/lib/campus-data";
-import { isGoogleSignInEnabled, supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 import { Logo } from "./ui";
@@ -53,30 +54,41 @@ export const authApi = {
     const { error } = await supabase.auth.updateUser({ password });
     if (error) throw authError(error.message);
   },
-  async google(returnPath: string) {
-    // Google refuses to load inside iframes, so embedded previews finish sign-in in a new tab.
-    // The tab is opened before any await so popup blockers still see the click.
-    const embedded = window.self !== window.top;
-    const tab = embedded ? window.open("", "_blank") : null;
-    const fail = () => {
-      tab?.close();
-      toast.error("Google sign-in isn't set up yet. Use your student email for now.");
-    };
-    if (!(await isGoogleSignInEnabled())) return fail();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}${returnPath}`, skipBrowserRedirect: embedded },
-    });
-    if (error || !data.url) return fail();
-    if (!embedded) return;
-    if (tab) {
-      tab.location.href = data.url;
-      toast.message("Finish signing in with Google in the new tab.");
-    } else {
-      toast.error("Your browser blocked the Google sign-in tab. Allow pop-ups for this site and try again.");
-    }
-  },
 };
+
+export function MobileAuth({
+  headline,
+  sub,
+  backTo,
+  children,
+}: {
+  headline: string;
+  sub: string;
+  backTo?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="flex min-h-full flex-col bg-brand lg:hidden">
+      <header className="px-6 pb-9 pt-6">
+        <div className="flex h-11 items-center gap-3">
+          {backTo ? (
+            <Link
+              to={backTo}
+              aria-label="Back"
+              className="-ml-1 grid size-11 shrink-0 place-items-center rounded-full bg-white/10 text-white hover:bg-white/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber"
+            >
+              <IconChevronLeft size={22} />
+            </Link>
+          ) : null}
+          <Logo light />
+        </div>
+        <h1 className="mt-9 font-display text-[40px] font-bold leading-[1.1] text-white">{headline}</h1>
+        <p className="mt-3 max-w-[22rem] text-[17px] leading-snug text-white/75">{sub}</p>
+      </header>
+      <section className="flex flex-1 flex-col rounded-t-[32px] bg-white px-6 pb-8 pt-8">{children}</section>
+    </div>
+  );
+}
 
 export function SplitAuth({
   headline,
@@ -118,16 +130,6 @@ export function AuthTabs({ active }: { active: "signin" | "create" }) {
       <a href="/create-account" role="tab" aria-selected={active === "create"} className={cn(base, active === "create" ? "bg-brand text-white" : "text-muted-ink")}>
         Create account
       </a>
-    </div>
-  );
-}
-
-export function OrDivider({ label = "or" }: { label?: string }) {
-  return (
-    <div className="flex items-center gap-4 text-sm text-muted-ink">
-      <span className="h-px flex-1 bg-divider" />
-      {label}
-      <span className="h-px flex-1 bg-divider" />
     </div>
   );
 }
