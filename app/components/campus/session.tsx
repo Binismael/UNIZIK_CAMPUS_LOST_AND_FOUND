@@ -13,9 +13,10 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<SessionState>({ session: null, loading: true, recovery: false });
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setState((s) => ({ ...s, session: data.session, loading: false }));
-    });
+    supabase.auth
+      .getSession()
+      .then(({ data }) => setState((s) => ({ ...s, session: data.session, loading: false })))
+      .catch(() => setState((s) => ({ ...s, session: null, loading: false })));
     const { data } = supabase.auth.onAuthStateChange((event, session) => {
       setState((s) => ({ session, loading: false, recovery: event === "PASSWORD_RECOVERY" ? true : event === "SIGNED_OUT" ? false : s.recovery }));
       if (event === "SIGNED_IN" || event === "SIGNED_OUT" || event === "USER_UPDATED") {
