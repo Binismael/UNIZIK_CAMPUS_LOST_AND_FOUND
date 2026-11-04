@@ -116,15 +116,23 @@ export default function ReportReview() {
               <div className="grid grid-cols-2 gap-x-3 gap-y-3">
                 <TextInput label="Type" value={form.title} onChange={set("title")} placeholder="e.g. Laptop charger" maxLength={60} />
                 <TextInput label="Colour" value={form.colour} onChange={set("colour")} placeholder="e.g. Black" maxLength={60} />
-                <TextInput label="Brand" value={form.brand} onChange={set("brand")} placeholder="e.g. Dell" maxLength={40} />
-                <TextInput label="Marks" value={form.marks} onChange={set("marks")} placeholder="e.g. Blue tape" maxLength={80} />
+                <TextInput label="Brand (optional)" value={form.brand} onChange={set("brand")} placeholder="e.g. Dell" maxLength={40} />
+                <TextInput label="Marks (optional)" value={form.marks} onChange={set("marks")} placeholder="e.g. Blue tape" maxLength={80} />
               </div>
             </>
           )}
-          <TextInput label="Where did you find it?" value={form.location} onChange={set("location")} placeholder="e.g. Block C, Engineering" maxLength={80} />
+          <div className="flex flex-col gap-1.5">
+            <TextInput label="Where did you find it?" value={form.location} onChange={set("location")} placeholder="e.g. Block C, Engineering" maxLength={80} />
+            <p className="text-sm text-muted-ink">Gemini can't tell this from the photo, so type the spot yourself.</p>
+          </div>
           <Btn type="submit" disabled={!canPost || create.isPending}>
             {create.isPending ? "Posting…" : "Post found item"}
           </Btn>
+          {!canPost && aiState !== "loading" ? (
+            <p className="-mt-2 text-center text-sm text-muted-ink">
+              {form.title.trim().length < 2 ? "Add the item type to post." : "Add where you found it to post."}
+            </p>
+          ) : null}
         </form>
       </div>
     </AppPage>
