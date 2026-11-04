@@ -38,14 +38,14 @@ visual direction — read and preserve them on every subsequent build; do not
 re-derive a new direction. The first UI pass must fill these fields in as
 part of that build, not leave them as an empty template.
 
-- Product mode: `operate` | `read` | `persuade` | `experience`
-- Audience and cadence:
-- Visual world (name + the feeling it creates):
-- Palette family + neutral undertone:
-- Type treatment:
-- Composition:
-- Shape language:
-- Anti-references (defaults this app must not drift toward):
+- Product mode: `operate` (mobile-first campus utility; welcome/auth screens lean `persuade`)
+- Audience and cadence: UNIZIK students, quick on-the-go sessions on phones (390px), occasional desktop (1280px).
+- Visual world: "Campus noticeboard, calm and trustworthy" — deep teal surfaces with a warm amber signal for anything actionable or new.
+- Palette family + neutral undertone: deep teal #0B3C49 (brand/primary), amber #FFB703 (accent, Found/Pending/New pills, Report CTA), light teal #EEF5F5 cards, ink #102A33, muted #3F565C, input border #B9CDCF, divider #D5E3E3, link #0E6F78. Light theme only (dark tokens mirror light). Tokens live in app/global.css as `brand`, `amber`, `surface`, `ink`, `muted-ink`, `line`, `divider`, `link`, `photo`.
+- Type treatment: serif display (Cambria/Georgia, `font-display`) only for welcome/auth/complete-profile headlines; system sans everywhere else, bold 17px for buttons and card titles.
+- Composition: mobile = brand top bar + bottom bar with raised amber Report button (amber pill behind active tab); desktop ≥1024px = 255px dark teal sidebar with amber "Report found item" + 88px top bar, content in 2-column grids. Auth screens split dark/white on desktop.
+- Shape language: 12–16px radii, pill chips/badges, 52px buttons, 48px inputs, 44px+ tap targets, flat surfaces (no shadows except the raised Report button).
+- Anti-references: generic gray SaaS dashboards, gradients, heavy shadows, dark mode, extra decorative icons/sections not in the CampusLostFound screen exports.
 
 ## Agent-Native is structural, not visual
 

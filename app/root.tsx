@@ -1,19 +1,16 @@
 import { configureTracking } from "@agent-native/core/client/analytics";
 import { appPath } from "@agent-native/core/client/api-path";
-import { useDbSync } from "@agent-native/core/client/hooks";
 import { createAgentNativeQueryClient } from "@agent-native/core/client/hooks";
 import { getThemeInitScript } from "@agent-native/core/client/ui";
 import { AppProviders } from "@agent-native/toolkit/app/providers";
-import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Links, Meta, Outlet, Scripts, ScrollRestoration } from "react-router";
 import type { LinksFunction } from "react-router";
 
+import { SessionProvider } from "@/components/campus/session";
 import { Layout as AppLayout } from "@/components/layout/Layout";
 import { AppToolkitProvider } from "@/components/ui/toolkit-provider";
-import { useNavigationState } from "@/hooks/use-navigation-state";
 import { APP_NAME, APP_TITLE } from "@/lib/app-config";
-import { TAB_ID } from "@/lib/tab-id";
 
 import stylesheet from "./global.css?url";
 
@@ -44,7 +41,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
           dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }}
         />
         {/* guard:allow-raw-color - theme-color metadata requires a concrete browser-chrome color. */}
-        <meta name="theme-color" content="#18181B" />
+        <meta name="theme-color" content="#0B3C49" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta
           name="apple-mobile-web-app-status-bar-style"
@@ -65,25 +62,18 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
-function DbSyncSetup() {
-  const qc = useQueryClient();
-  useNavigationState();
-  useDbSync({
-    queryClient: qc,
-    ignoreSource: TAB_ID,
-  });
-  return null;
-}
-
+// Supabase Auth gates the screens (see app/routes/_app.tsx), so every page is
+// public to the framework's own session gate.
 export default function Root() {
   const [queryClient] = useState(() => createAgentNativeQueryClient());
   return (
     <AppToolkitProvider>
-      <AppProviders queryClient={queryClient}>
-        <DbSyncSetup />
-        <AppLayout>
-          <Outlet />
-        </AppLayout>
+      <AppProviders queryClient={queryClient} isPublicPath disableWebMcp defaultTheme="light">
+        <SessionProvider>
+          <AppLayout>
+            <Outlet />
+          </AppLayout>
+        </SessionProvider>
       </AppProviders>
     </AppToolkitProvider>
   );

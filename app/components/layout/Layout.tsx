@@ -18,7 +18,7 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
   return (
     <HeaderActionsProvider>
-      <div className="flex h-screen w-full flex-col overflow-hidden bg-background text-foreground">
+      <div className="fixed inset-0 flex flex-col overflow-hidden bg-background text-foreground">
         <main className="agent-native-app-main min-w-0 flex-1 overflow-y-auto overscroll-contain">
           {children}
         </main>

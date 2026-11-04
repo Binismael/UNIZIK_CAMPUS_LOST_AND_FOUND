@@ -5,35 +5,59 @@
 
 @source "./**/*.{ts,tsx}";
 
+@theme inline {
+  --color-brand: hsl(var(--brand));
+  --color-brand-soft: hsl(var(--brand-soft));
+  --color-amber: hsl(var(--amber));
+  --color-surface: hsl(var(--surface));
+  --color-photo: hsl(var(--photo));
+  --color-ink: hsl(var(--ink));
+  --color-muted-ink: hsl(var(--muted-ink));
+  --color-line: hsl(var(--line));
+  --color-divider: hsl(var(--divider));
+  --color-link: hsl(var(--link));
+  --font-display: Cambria, Georgia, "Times New Roman", serif;
+}
+
 :root {
   --background: 0 0% 100%;
-  --foreground: 0 0% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 0 0% 10%;
+  --foreground: 195 52% 13%;
+  --card: 180 26% 95%;
+  --card-foreground: 195 52% 13%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 10%;
-  --primary: 0 0% 15%;
+  --popover-foreground: 195 52% 13%;
+  --primary: 193 74% 16%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 95%;
-  --secondary-foreground: 0 0% 15%;
-  --muted: 0 0% 95%;
-  --muted-foreground: 0 0% 43%;
-  --accent: 0 0% 95%;
-  --accent-foreground: 0 0% 15%;
-  --destructive: 0 91% 71%;
+  --secondary: 180 26% 95%;
+  --secondary-foreground: 193 74% 16%;
+  --muted: 180 26% 95%;
+  --muted-foreground: 192 19% 30%;
+  --accent: 43 100% 51%;
+  --accent-foreground: 193 74% 16%;
+  --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 0 0% 40%;
-  --radius: 0.5rem;
-  --sidebar-background: 0 0% 97%;
-  --sidebar-foreground: 0 0% 43%;
-  --sidebar-primary: 0 0% 15%;
-  --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 95%;
-  --sidebar-accent-foreground: 0 0% 15%;
-  --sidebar-border: 0 0% 90%;
-  --sidebar-ring: 0 0% 40%;
+  --border: 180 20% 86%;
+  --input: 186 19% 77%;
+  --ring: 185 79% 26%;
+  --radius: 0.75rem;
+  --sidebar-background: 193 74% 16%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 43 100% 51%;
+  --sidebar-primary-foreground: 193 74% 16%;
+  --sidebar-accent: 192 47% 24%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 192 47% 24%;
+  --sidebar-ring: 43 100% 51%;
+  --brand: 193 74% 16%;
+  --brand-soft: 192 47% 24%;
+  --amber: 43 100% 51%;
+  --surface: 180 26% 95%;
+  --photo: 192 25% 87%;
+  --ink: 195 52% 13%;
+  --muted-ink: 192 19% 30%;
+  --line: 186 19% 77%;
+  --divider: 180 20% 86%;
+  --link: 185 79% 26%;
   --chat-sidebar-width: 17.5rem;
   --chat-sidebar-content-inset: 0.5rem;
   --chat-sidebar-row-padding: 0.75rem;
@@ -229,41 +253,50 @@
 }
 
 .dark {
-  --background: 0 0% 13%;
-  --foreground: 0 0% 90%;
-  --card: 0 0% 16.47%;
-  --card-foreground: 0 0% 90%;
-  --popover: 0 0% 15%;
-  --popover-foreground: 0 0% 90%;
-  --primary: 0 0% 75%;
-  --primary-foreground: 0 0% 10%;
-  --secondary: 0 0% 18%;
-  --secondary-foreground: 0 0% 90%;
-  --muted: 0 0% 16%;
-  --muted-foreground: 0 0% 60%;
-  --accent: 0 0% 18%;
-  --accent-foreground: 0 0% 90%;
-  --destructive: 0 84% 60%;
+  --background: 0 0% 100%;
+  --foreground: 195 52% 13%;
+  --card: 180 26% 95%;
+  --card-foreground: 195 52% 13%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 195 52% 13%;
+  --primary: 193 74% 16%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 180 26% 95%;
+  --secondary-foreground: 193 74% 16%;
+  --muted: 180 26% 95%;
+  --muted-foreground: 192 19% 30%;
+  --accent: 43 100% 51%;
+  --accent-foreground: 193 74% 16%;
+  --destructive: 0 72% 45%;
   --destructive-foreground: 0 0% 98%;
-  --border: 0 0% 24%;
-  --input: 0 0% 24%;
-  --ring: 0 0% 60%;
-  --radius: 0.5rem;
-  --sidebar-background: 0 0% 10%;
-  --sidebar-foreground: 0 0% 60%;
-  --sidebar-primary: 0 0% 75%;
-  --sidebar-primary-foreground: 0 0% 10%;
-  --sidebar-accent: 0 0% 16%;
-  --sidebar-accent-foreground: 0 0% 90%;
-  --sidebar-border: 0 0% 20%;
-  --sidebar-ring: 0 0% 60%;
+  --border: 180 20% 86%;
+  --input: 186 19% 77%;
+  --ring: 185 79% 26%;
+  --radius: 0.75rem;
+  --sidebar-background: 193 74% 16%;
+  --sidebar-foreground: 0 0% 100%;
+  --sidebar-primary: 43 100% 51%;
+  --sidebar-primary-foreground: 193 74% 16%;
+  --sidebar-accent: 192 47% 24%;
+  --sidebar-accent-foreground: 0 0% 100%;
+  --sidebar-border: 192 47% 24%;
+  --sidebar-ring: 43 100% 51%;
+  --brand: 193 74% 16%;
+  --brand-soft: 192 47% 24%;
+  --amber: 43 100% 51%;
+  --surface: 180 26% 95%;
+  --photo: 192 25% 87%;
+  --ink: 195 52% 13%;
+  --muted-ink: 192 19% 30%;
+  --line: 186 19% 77%;
+  --divider: 180 20% 86%;
+  --link: 185 79% 26%;
 }
 
 @layer base {
   body {
     @apply bg-background text-foreground;
-    font-family: "Inter Variable", "Inter", sans-serif;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter Variable", "Helvetica Neue", Arial, sans-serif;
   }
 }
 
@@ -280,4 +313,9 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--muted-foreground) / 0.34);
+}
+
+/* The whole app renders at 75% scale on every screen size. */
+html {
+  zoom: 0.75;
 }
