@@ -52,7 +52,11 @@ async function gemini(mimeType: string, data: string): Promise<unknown | null> {
       }),
     },
   );
-  if (!res.ok) return null;
+  if (!res.ok) {
+    const detail = (await res.text()).slice(0, 500);
+    console.error(`Gemini ${res.status}: ${detail}`);
+    throw new Error(`gemini-${res.status}`);
+  }
   const body = await res.json();
   const text = body?.candidates?.[0]?.content?.parts?.[0]?.text;
   return text ? JSON.parse(text) : null;
@@ -68,9 +72,15 @@ Deno.serve(async (req) => {
       : null;
     if (!match) return json({ error: "Send a JPEG, PNG or WebP image under 5 MB." }, 400);
     if (!Deno.env.get("GEMINI_API_KEY")) return json({ tags: null, reason: "not-configured" });
-    const raw = await gemini(match[1], match[2]).catch(() => null);
+    let raw: unknown = null;
+    try {
+      raw = await gemini(match[1], match[2]);
+    } catch (e) {
+      console.error("tag-item gemini error", e);
+      return json({ tags: null, reason: "failed", detail: e instanceof Error ? e.message : "unknown" });
+    }
     const parsed = raw ? tagsSchema.safeParse(raw) : null;
-    if (!parsed?.success) return json({ tags: null, reason: "failed" });
+    if (!parsed?.success) return json({ tags: null, reason: "failed", detail: "unparseable" });
     return json({ tags: parsed.data, reason: null });
   } catch {
     return json({ tags: null, reason: "failed" });
