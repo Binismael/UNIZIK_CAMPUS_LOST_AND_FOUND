@@ -1,8 +1,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { z } from "npm:zod@3.23.8";
 
-// Check Google AI Studio for the current Flash model name.
-const GEMINI_MODEL = "gemini-2.5-flash";
+// Google retires models for new keys and sheds load with 503s, so try several in order.
+const GEMINI_MODELS = [
+  ...new Set([Deno.env.get("GEMINI_MODEL"), "gemini-3.8-flash", "gemini-flash-latest", "gemini-flash-lite-latest"]),
+].filter(Boolean) as string[];
+const FATAL = new Set(["gemini-400", "gemini-401", "gemini-403"]);
 const CATEGORIES = ["Phones", "IDs", "Chargers", "Books", "Bags", "Keys", "Other"];
 
 const cors = {
@@ -28,14 +31,28 @@ const tagsSchema = z.object({
 });
 
 async function gemini(mimeType: string, data: string): Promise<unknown | null> {
+  const failures: string[] = [];
+  for (const model of GEMINI_MODELS) {
+    try {
+      return await geminiWith(model, mimeType, data);
+    } catch (e) {
+      const status = e instanceof Error ? e.message : "error";
+      failures.push(`${model}:${status}`);
+      if (FATAL.has(status)) break;
+    }
+  }
+  throw new Error(failures.join(", "));
+}
+
+async function geminiWith(model: string, mimeType: string, data: string): Promise<unknown | null> {
   const key = Deno.env.get("GEMINI_API_KEY");
   if (!key) return null;
   const res = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
     {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-      signal: AbortSignal.timeout(15000),
+      signal: AbortSignal.timeout(12000),
       body: JSON.stringify({
         contents: [
           {
@@ -54,12 +71,18 @@ async function gemini(mimeType: string, data: string): Promise<unknown | null> {
   );
   if (!res.ok) {
     const detail = (await res.text()).slice(0, 500);
-    console.error(`Gemini ${res.status}: ${detail}`);
+    console.error(`Gemini ${model} ${res.status}: ${detail}`);
     throw new Error(`gemini-${res.status}`);
   }
   const body = await res.json();
-  const text = body?.candidates?.[0]?.content?.parts?.[0]?.text;
-  return text ? JSON.parse(text) : null;
+  const parts: Array<{ text?: string; thought?: boolean }> = body?.candidates?.[0]?.content?.parts ?? [];
+  const text = parts.filter((p) => p.text && !p.thought).map((p) => p.text).join("");
+  const jsonText = text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
+  if (!jsonText) {
+    console.error(`Gemini ${model} unparseable: ${JSON.stringify(body).slice(0, 800)}`);
+    throw new Error("gemini-empty");
+  }
+  return JSON.parse(jsonText);
 }
 
 Deno.serve(async (req) => {

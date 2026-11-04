@@ -2,8 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { z } from "npm:zod@3.23.8";
 
-// Check Google AI Studio for the current Flash model name.
-const GEMINI_MODEL = "gemini-2.5-flash";
+// Google retires models for new keys and sheds load with 503s, so try several in order.
+const GEMINI_MODELS = [
+  ...new Set([Deno.env.get("GEMINI_MODEL"), "gemini-3.8-flash", "gemini-flash-latest", "gemini-flash-lite-latest"]),
+].filter(Boolean) as string[];
+const FATAL = new Set([400, 401, 403]);
 const CATEGORIES = ["Phones", "IDs", "Chargers", "Books", "Bags", "Keys", "Other"];
 
 const cors = {
@@ -32,13 +35,26 @@ const EMPTY: Criteria = { category: "", colors: [], brand: "", marks: "", locati
 async function parseWithGemini(query: string): Promise<Criteria | null> {
   const key = Deno.env.get("GEMINI_API_KEY");
   if (!key) return null;
+  for (const model of GEMINI_MODELS) {
+    const result = await parseWith(model, key, query);
+    if (result.criteria) return result.criteria;
+    if (result.status && FATAL.has(result.status)) break;
+  }
+  return null;
+}
+
+async function parseWith(
+  model: string,
+  key: string,
+  query: string,
+): Promise<{ criteria: Criteria | null; status?: number }> {
   try {
     const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-goog-api-key": key },
-        signal: AbortSignal.timeout(8000),
+        signal: AbortSignal.timeout(6000),
         body: JSON.stringify({
           contents: [
             {
@@ -54,13 +70,18 @@ async function parseWithGemini(query: string): Promise<Criteria | null> {
         }),
       },
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`Gemini ${model} ${res.status}: ${(await res.text()).slice(0, 500)}`);
+      return { criteria: null, status: res.status };
+    }
     const body = await res.json();
-    const text = body?.candidates?.[0]?.content?.parts?.[0]?.text;
-    const parsed = text ? criteriaSchema.safeParse(JSON.parse(text)) : null;
-    return parsed?.success ? parsed.data : null;
+    const parts: Array<{ text?: string; thought?: boolean }> = body?.candidates?.[0]?.content?.parts ?? [];
+    const text = parts.filter((p) => p.text && !p.thought).map((p) => p.text).join("");
+    const jsonText = text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
+    const parsed = jsonText ? criteriaSchema.safeParse(JSON.parse(jsonText)) : null;
+    return { criteria: parsed?.success ? parsed.data : null };
   } catch {
-    return null;
+    return { criteria: null };
   }
 }
 
