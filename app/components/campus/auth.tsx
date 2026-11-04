@@ -1,7 +1,5 @@
-import { toast } from "sonner";
-
 import type { CampusDetails } from "@/lib/campus-data";
-import { isGoogleSignInEnabled, supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import { cn } from "@/lib/utils";
 
 import { Logo } from "./ui";
@@ -53,29 +51,6 @@ export const authApi = {
     const { error } = await supabase.auth.updateUser({ password });
     if (error) throw authError(error.message);
   },
-  async google(returnPath: string) {
-    // Google refuses to load inside iframes, so embedded previews finish sign-in in a new tab.
-    // The tab is opened before any await so popup blockers still see the click.
-    const embedded = window.self !== window.top;
-    const tab = embedded ? window.open("", "_blank") : null;
-    const fail = () => {
-      tab?.close();
-      toast.error("Google sign-in isn't set up yet. Use your student email for now.");
-    };
-    if (!(await isGoogleSignInEnabled())) return fail();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}${returnPath}`, skipBrowserRedirect: embedded },
-    });
-    if (error || !data.url) return fail();
-    if (!embedded) return;
-    if (tab) {
-      tab.location.href = data.url;
-      toast.message("Finish signing in with Google in the new tab.");
-    } else {
-      toast.error("Your browser blocked the Google sign-in tab. Allow pop-ups for this site and try again.");
-    }
-  },
 };
 
 export function SplitAuth({
@@ -118,16 +93,6 @@ export function AuthTabs({ active }: { active: "signin" | "create" }) {
       <a href="/create-account" role="tab" aria-selected={active === "create"} className={cn(base, active === "create" ? "bg-brand text-white" : "text-muted-ink")}>
         Create account
       </a>
-    </div>
-  );
-}
-
-export function OrDivider({ label = "or" }: { label?: string }) {
-  return (
-    <div className="flex items-center gap-4 text-sm text-muted-ink">
-      <span className="h-px flex-1 bg-divider" />
-      {label}
-      <span className="h-px flex-1 bg-divider" />
     </div>
   );
 }

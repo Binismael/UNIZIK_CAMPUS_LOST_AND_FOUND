@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { toast } from "sonner";
 
-import { OrDivider, SplitAuth, authApi } from "@/components/campus/auth";
+import { SplitAuth, authApi } from "@/components/campus/auth";
 import { ProfileForm, type AccountValues } from "@/components/campus/profile-form";
 import { Btn } from "@/components/campus/ui";
 import { errorMessage } from "@/lib/campus";
@@ -48,11 +48,6 @@ function CreateAccountBody({ twoColumn }: { twoColumn: boolean }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <Btn variant="secondary" type="button" onClick={() => authApi.google("/complete-profile")}>
-        Sign up with Google
-      </Btn>
-      <p className="text-center text-sm text-muted-ink">With Google, we ask for your campus details right after you sign in.</p>
-      <OrDivider label="or fill in the form" />
       <ProfileForm mode="create" submitLabel="Create account" submitting={busy} onSubmit={onSubmit} twoColumn={twoColumn} />
       <p className="text-center text-[17px] text-muted-ink">
         Already have an account?{" "}

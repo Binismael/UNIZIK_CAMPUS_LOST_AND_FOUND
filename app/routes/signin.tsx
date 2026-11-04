@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "sonner";
 
-import { AuthTabs, OrDivider, SplitAuth, authApi } from "@/components/campus/auth";
+import { AuthTabs, SplitAuth, authApi } from "@/components/campus/auth";
 import { useAuth } from "@/components/campus/session";
 import { Btn, Logo, Pill, TextInput } from "@/components/campus/ui";
 import { errorMessage } from "@/lib/campus";
@@ -100,10 +100,6 @@ function SignInForm() {
           {busy ? "Signing in…" : "Sign in"}
         </Btn>
       </form>
-      <OrDivider />
-      <Btn variant="secondary" type="button" onClick={() => authApi.google("/")}>
-        Continue with Google
-      </Btn>
       <p className="text-center text-[17px] text-muted-ink">
         New here?{" "}
         <a href="/create-account" className="font-bold text-brand hover:underline">
