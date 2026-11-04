@@ -46,8 +46,17 @@ if (!isProcessEntrypoint()) {
   );
 }
 
+let exitCode = 0;
 try {
   await main();
+} catch (err) {
+  console.error(err);
+  exitCode = 1;
 } finally {
-  await closeDbExec();
+  // Pooled Postgres hosts (e.g. Supabase) can leave pool.end() pending forever and hang the deploy.
+  await Promise.race([
+    closeDbExec(),
+    new Promise((resolve) => setTimeout(resolve, 5000).unref()),
+  ]);
 }
+process.exit(exitCode);
