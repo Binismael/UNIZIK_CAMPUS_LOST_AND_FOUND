@@ -47,7 +47,23 @@ export function dayAndTime(value: string) {
   return `${label}, ${time}`;
 }
 
-export function compressImage(file: File, maxDim = 1600, quality = 0.72): Promise<string> {
+export const isHeicName = (file: File) => /\.(heic|heif)$/i.test(file.name) || /image\/hei[cf]/i.test(file.type);
+
+export async function compressImage(file: File, maxDim = 1600, quality = 0.72): Promise<string> {
+  try {
+    return await drawCompressed(file, maxDim, quality);
+  } catch (err) {
+    // Only Safari decodes iPhone HEIC photos natively; convert them for every other browser.
+    const { isHeic, heicTo } = await import("heic-to");
+    if (!isHeicName(file) && !(await isHeic(file).catch(() => false))) throw err;
+    const jpeg = await heicTo({ blob: file, type: "image/jpeg", quality: 0.9 }).catch(() => {
+      throw new Error("Couldn't read that iPhone photo. Try taking a new one or choosing a JPG/PNG.");
+    });
+    return drawCompressed(jpeg, maxDim, quality);
+  }
+}
+
+function drawCompressed(file: Blob, maxDim: number, quality: number): Promise<string> {
   return new Promise((resolve, reject) => {
     const url = URL.createObjectURL(file);
     const img = new Image();
@@ -62,7 +78,7 @@ export function compressImage(file: File, maxDim = 1600, quality = 0.72): Promis
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("Couldn't read that image"));
+      reject(new Error("Couldn't read that image. Try a JPG or PNG photo."));
     };
     img.src = url;
   });

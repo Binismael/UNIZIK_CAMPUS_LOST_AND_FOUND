@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { AppPage } from "@/components/campus/shell";
 import { BackHeader, Btn } from "@/components/campus/ui";
-import { compressImage, errorMessage, reportDraft } from "@/lib/campus";
+import { compressImage, errorMessage, isHeicName, reportDraft } from "@/lib/campus";
 import { cn } from "@/lib/utils";
 
 export function meta() {
@@ -21,7 +21,7 @@ export default function ReportPhoto() {
 
   async function handleFile(file?: File | null) {
     if (!file) return;
-    if (!file.type.startsWith("image/")) {
+    if (!file.type.startsWith("image/") && !isHeicName(file)) {
       toast.error("Please choose an image file.");
       return;
     }
@@ -76,7 +76,7 @@ export default function ReportPhoto() {
         Show the whole item in good light. Hide personal details like ID numbers.
       </div>
       <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
-      <input ref={galleryRef} type="file" accept="image/*" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
+      <input ref={galleryRef} type="file" accept="image/*,.heic,.heif" className="hidden" onChange={(e) => handleFile(e.target.files?.[0])} />
     </AppPage>
   );
 }
