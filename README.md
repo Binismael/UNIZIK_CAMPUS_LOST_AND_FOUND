@@ -1,9 +1,23 @@
-# My App
+# CampusLost&Found
 
-An app built with [Builder.io](https://www.builder.io) on the
-[Agent-Native](https://agent-native.com?utm_source=github&utm_medium=referral&utm_content=fusion-starter-readme) framework. Replace this paragraph with
-what the app does and who it's for.
+Find what you lost. Return what you found.
 
+CampusLost&Found is an AI-powered lost-and-found platform for UNIZIK students. A finder uploads a photo of an item, Gemini automatically tags it (type, colour, brand, marks), and owners search in plain language like "black Dell charger with blue tape". Owners claim items by giving proof, and finders approve, so contact details stay private until a claim is approved.
+
+Built for BUILDUP UNIZIK 2026 (GDG on Campus UNIZIK x NACOS).
+
+## Features
+- Sign in with email or Google, plus a one-time campus profile
+- Report a found item with automatic Gemini tagging
+- Plain-language search with ranked matches
+- Proof-based claims, approvals and handover
+- Mobile and desktop layouts
+
+## Tech stack
+React + TypeScript (Vite), Tailwind CSS, Supabase (Auth, Postgres, Storage, Edge Functions), Gemini API, Vercel
+
+## Live demo
+https://unizik-campus-lost-and-found.vercel.app
 ## Develop locally
 
 ```bash
