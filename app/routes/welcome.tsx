@@ -1,6 +1,6 @@
 import { IconCamera, IconClipboardCheck, IconSparkles } from "@tabler/icons-react";
 import { useEffect } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 import { useAuth } from "@/components/campus/session";
 
@@ -52,6 +52,10 @@ export default function Welcome() {
               I already have an account
             </BtnLink>
           </div>
+          <p className="mt-6 text-center text-[15px] leading-snug text-white/70">
+            Returns are always free. No buying or selling.{" "}
+            <Link to="/terms" className="font-bold text-amber hover:underline">Terms</Link>
+          </p>
         </div>
       </div>
 
@@ -85,6 +89,10 @@ export default function Welcome() {
                 I already have an account
               </BtnLink>
             </div>
+            <p className="mt-6 text-center text-[15px] text-muted-ink">
+              Returns are always free. No buying or selling.{" "}
+              <Link to="/terms" className="font-bold text-link hover:underline">Read the Terms</Link>
+            </p>
           </div>
         </section>
       </div>

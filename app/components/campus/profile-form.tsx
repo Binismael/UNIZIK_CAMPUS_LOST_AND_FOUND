@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { Link } from "react-router";
 import { z } from "zod";
 
 import { cn } from "@/lib/utils";
@@ -67,6 +68,7 @@ export function ProfileForm({
   onSubmit,
   twoColumn = true,
   stepped = false,
+  requireTerms = false,
 }: {
   mode: "create" | "complete";
   email?: string;
@@ -76,6 +78,7 @@ export function ProfileForm({
   onSubmit: (values: AccountValues) => void;
   twoColumn?: boolean;
   stepped?: boolean;
+  requireTerms?: boolean;
 }) {
   const schema = mode === "create" ? accountSchema : campusSchema;
   const {
@@ -107,6 +110,8 @@ export function ProfileForm({
   const facultyField = register("faculty");
   const isStepped = stepped && mode === "create";
   const [step, setStep] = useState(0);
+  const [agreed, setAgreed] = useState(false);
+  const [termsError, setTermsError] = useState(false);
   const showAccount = mode === "create" && (!isStepped || step === 0);
   const showCampus = !isStepped || step === 1;
 
@@ -125,7 +130,13 @@ export function ProfileForm({
           e.preventDefault();
           void continueToCampus();
         }
-      : handleSubmit(onSubmit);
+      : handleSubmit((values) => {
+          if (requireTerms && !agreed) {
+            setTermsError(true);
+            return;
+          }
+          onSubmit(values);
+        });
 
   return (
     <form noValidate onSubmit={submit} className="flex flex-col gap-4">
@@ -172,6 +183,36 @@ export function ProfileForm({
             <TextInput label="Phone number (WhatsApp)" type="tel" inputMode="tel" placeholder="080 0000 0000" autoComplete="tel" error={errors.phone?.message} {...register("phone", { setValueAs: (v: string) => v.replace(/\s+/g, "") })} />
           </div>
           <Notice>Your phone number and hostel are only shared with a claimant after you approve their claim.</Notice>
+          {requireTerms ? (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="accept-terms" className="flex cursor-pointer items-start gap-3 text-[15px] leading-snug text-ink">
+                <input
+                  id="accept-terms"
+                  type="checkbox"
+                  checked={agreed}
+                  onChange={(e) => {
+                    setAgreed(e.target.checked);
+                    if (e.target.checked) setTermsError(false);
+                  }}
+                  aria-invalid={termsError || undefined}
+                  aria-describedby={termsError ? "accept-terms-error" : undefined}
+                  className="mt-0.5 size-5 shrink-0 cursor-pointer accent-brand"
+                />
+                <span>
+                  I agree to the{" "}
+                  <Link to="/terms" target="_blank" rel="noopener" className="font-bold text-link hover:underline">
+                    Terms and Conditions
+                  </Link>
+                  . I will never pay or ask for money to return an item, and I won't use this app to buy or sell anything.
+                </span>
+              </label>
+              {termsError ? (
+                <p id="accept-terms-error" className="text-sm text-destructive" role="alert">
+                  Tick the box to agree to the Terms before you continue.
+                </p>
+              ) : null}
+            </div>
+          ) : null}
           <Btn type="submit" disabled={submitting}>
             {submitting ? "Saving…" : submitLabel}
           </Btn>

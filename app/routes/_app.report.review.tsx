@@ -5,7 +5,7 @@ import { toast } from "sonner";
 
 import { MapPreview, type Pin } from "@/components/campus/map-pin";
 import { AppPage } from "@/components/campus/shell";
-import { BackHeader, Btn, PhotoBox, TextInput } from "@/components/campus/ui";
+import { BackHeader, Btn, NoPaymentNotice, Notice, PhotoBox, TextInput } from "@/components/campus/ui";
 import { CATEGORIES, errorMessage, guessCategory, reportDraft, type Category } from "@/lib/campus";
 import { useCreateItem, useTagItem } from "@/lib/campus-data";
 
@@ -143,6 +143,9 @@ export default function ReportReview() {
         <div>
           <p className="rounded-full bg-surface px-5 py-1 text-sm font-bold text-brand">Step 2 of 2</p>
           <PhotoBox src={photo} alt="Photo of the found item" className="mt-4 h-[280px] w-full rounded-2xl lg:h-[287px]" />
+          <div className="mt-3">
+            <Notice>Only you can see this photo. Other students see the description, and the owner sees the photo after you approve their claim.</Notice>
+          </div>
         </div>
         <form onSubmit={post} className="flex flex-col gap-4" noValidate>
           {aiState === "loading" ? (
@@ -183,6 +186,7 @@ export default function ReportReview() {
             <p className="text-sm text-muted-ink">Gemini can't tell this from the photo, so type the spot yourself. Still there? Add a map pin too.</p>
           </div>
           <LocationPin pin={pin} onChange={setPin} />
+          <NoPaymentNotice />
           <Btn type="submit" disabled={!canPost || create.isPending}>
             {create.isPending ? "Posting…" : "Post found item"}
           </Btn>
