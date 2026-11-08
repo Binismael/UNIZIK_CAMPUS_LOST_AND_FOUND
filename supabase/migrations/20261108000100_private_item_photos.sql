@@ -1,5 +1,6 @@
--- Item photos are private: only the finder and a claimant whose claim was
--- approved can open them. Everyone else verifies ownership from the text listing.
+-- Item photos are private: only the finder, a claimant whose claim was approved,
+-- and moderators can open them. Everyone else verifies ownership from the text listing.
+-- Requires public.is_admin() from the admin_moderation migration.
 drop policy if exists "Signed-in users view item photos" on storage.objects;
 
 create policy "Finders and approved claimants view item photos" on storage.objects
@@ -7,6 +8,7 @@ create policy "Finders and approved claimants view item photos" on storage.objec
     bucket_id = 'item-photos'
     and (
       (storage.foldername(name))[1] = (select auth.uid())::text
+      or (select public.is_admin())
       or exists (
         select 1
         from public.items i
