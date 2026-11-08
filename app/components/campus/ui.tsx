@@ -2,6 +2,7 @@ import {
   IconCamera,
   IconCheck,
   IconChevronLeft,
+  IconCoinOff,
   IconEye,
   IconEyeOff,
   IconLock,
@@ -238,14 +239,28 @@ export function PhotoBox({
   alt,
   className,
   label,
+  hidden = false,
 }: {
   src?: string | null;
   alt: string;
   className?: string;
   label?: string;
+  hidden?: boolean;
 }) {
   if (src) {
     return <img src={src} alt={alt} className={cn("rounded-xl bg-photo object-cover", className)} />;
+  }
+  if (hidden) {
+    return (
+      <div
+        role="img"
+        aria-label="Photo kept private"
+        className={cn("flex flex-col items-center justify-center gap-2 rounded-xl bg-photo px-4 text-center text-muted-ink", className)}
+      >
+        <IconLock size={label ? 32 : 22} stroke={2} />
+        {label ? <span className="max-w-[260px] text-[15px] leading-snug">{label}</span> : null}
+      </div>
+    );
   }
   return (
     <div className={cn("flex flex-col items-center justify-center gap-2 rounded-xl bg-photo text-muted-ink", className)}>
@@ -264,6 +279,7 @@ export type CardItem = {
   location: string;
   foundAt: string;
   photo: string | null;
+  photoHidden?: boolean;
 };
 
 export function ItemCard({
@@ -281,7 +297,7 @@ export function ItemCard({
 }) {
   const body = (
     <div className={cn("flex gap-4 rounded-2xl bg-surface p-3 lg:p-3", to && "transition-colors hover:bg-divider/60", className)}>
-      <PhotoBox src={item.photo} alt={item.title} className="size-[74px] shrink-0 lg:size-[74px]" />
+      <PhotoBox src={item.photo} hidden={item.photoHidden ?? false} alt={item.title} className="size-[74px] shrink-0 lg:size-[74px]" />
       <div className="min-w-0 flex-1 py-0.5">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-[17px] font-bold leading-tight text-ink">{item.title}</h3>
@@ -322,6 +338,19 @@ export function Notice({ children, icon = "lock" }: { children: React.ReactNode;
     <div className="flex items-start gap-3 rounded-xl bg-surface px-4 py-3 text-[15px] leading-snug text-muted-ink">
       {icon === "lock" ? <IconLock size={16} className="mt-0.5 shrink-0 text-brand" /> : null}
       <span>{children}</span>
+    </div>
+  );
+}
+
+export function NoPaymentNotice({ className }: { className?: string }) {
+  return (
+    <div role="note" className={cn("flex items-start gap-3 rounded-xl border border-amber bg-amber/15 px-4 py-3 text-[15px] leading-snug text-ink", className)}>
+      <IconCoinOff size={18} className="mt-0.5 shrink-0 text-brand" aria-hidden />
+      <span>
+        <span className="font-bold">Returns are always free.</span> Never pay or ask for money to get an item back. This is not a place to
+        buy or sell. Report anyone who asks.{" "}
+        <Link to="/terms" className="font-bold text-link hover:underline">Terms</Link>
+      </span>
     </div>
   );
 }

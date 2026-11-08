@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { ClaimChat } from "@/components/campus/claim-chat";
 import { MapPreview } from "@/components/campus/map-pin";
 import { AppPage } from "@/components/campus/shell";
-import { BackHeader, Btn, BtnLink, EmptyState, Notice, PhotoBox, Pill, Tag } from "@/components/campus/ui";
+import { BackHeader, Btn, BtnLink, EmptyState, NoPaymentNotice, Notice, PhotoBox, Pill, Tag } from "@/components/campus/ui";
 import { dayAndTime, errorMessage, itemTags } from "@/lib/campus";
 import { useCreateClaim, useItem, useMyProfile, useReportItem } from "@/lib/campus-data";
 
@@ -135,7 +135,13 @@ export default function ItemDetails() {
     <AppPage title="Home">
       <BackHeader title="Item details" />
       <div className="mt-5 grid gap-6 lg:mt-0 lg:grid-cols-2 lg:gap-8">
-        <PhotoBox src={item.photo} alt={item.title} label="Photo of the item" className="h-[296px] w-full rounded-2xl lg:h-[328px]" />
+        <PhotoBox
+          src={item.photo}
+          hidden={item.photoHidden}
+          alt={item.title}
+          label={item.photoHidden ? "Photo kept private. You'll see it once the finder approves your claim." : "Photo of the item"}
+          className="h-[296px] w-full rounded-2xl lg:h-[328px]"
+        />
         <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3">
             <h1 className="text-[32px] font-bold leading-tight text-ink lg:text-[28px]">{item.title}</h1>
@@ -147,7 +153,8 @@ export default function ItemDetails() {
           </p>
           {item.pin ? <MapPreview pin={item.pin} title={`Map of where the ${item.title} was found`} /> : null}
           {item.summary ? <p className="text-[15px] text-muted-ink">{item.summary}</p> : null}
-          {!item.isMine ? <Notice>The finder's contact stays hidden until they approve your claim.</Notice> : null}
+          {!item.isMine ? <Notice>The photo and the finder's contact stay hidden until they approve your claim.</Notice> : null}
+          <NoPaymentNotice />
           {claimArea}
           {!item.isMine ? <ReportPost itemId={item.id} /> : null}
         </div>

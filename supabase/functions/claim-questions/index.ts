@@ -45,9 +45,9 @@ function prompt(item: Item) {
     foundAt: item.location,
   });
   return `You help a lost-and-found service at a Nigerian university (UNIZIK) check who really owns a found item.
-A student says the item below is theirs. The public listing and the photo are ALREADY visible to them, so never ask about anything shown there.
+A student says the item below is theirs. The public listing is ALREADY visible to them, so never ask about anything in it. The photo is private: only the finder has seen it, so details visible in the photo make good questions.
 
-Write exactly 3 short, friendly questions that only the true owner could answer and that the finder, who is holding the item, can check by looking at it. Good topics: what is inside it, marks, scratches, stickers or writing on parts the photo does not show, a name or initials written inside, the lock screen or wallpaper, attached accessories, and when or where they lost it.
+Write exactly 3 short, friendly questions that only the true owner could answer and that the finder, who is holding the item, can check by looking at it. Good topics: what is inside it, marks, scratches, stickers, cases or writing, a name or initials written inside, the lock screen or wallpaper, attached accessories, and when or where they lost it.
 
 Rules:
 - Never reveal or hint at an answer.
@@ -126,8 +126,11 @@ Deno.serve(async (req) => {
     if (!Deno.env.get("GEMINI_API_KEY")) return json({ questions: null, reason: "not-configured" });
 
     let image: { mimeType: string; data: string } | null = null;
-    if (item.photo_path) {
-      const { data: blob } = await supabase.storage.from("item-photos").download(item.photo_path);
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (item.photo_path && serviceKey) {
+      // Claimants can't read the photo themselves; it is only sent to Gemini, never returned.
+      const admin = createClient(Deno.env.get("SUPABASE_URL")!, serviceKey);
+      const { data: blob } = await admin.storage.from("item-photos").download(item.photo_path);
       if (blob && blob.size < 5_500_000) {
         image = { mimeType: blob.type || "image/jpeg", data: encodeBase64(new Uint8Array(await blob.arrayBuffer())) };
       }

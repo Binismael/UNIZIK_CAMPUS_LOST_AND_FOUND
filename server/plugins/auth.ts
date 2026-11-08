@@ -16,6 +16,7 @@ export const APP_PAGES = [
   "/claims",
   "/posts",
   "/profile",
+  "/terms",
 ];
 
 export default createAuthPlugin({

@@ -76,6 +76,9 @@ export default function Profile() {
             <Link to="/profile/edit" className={rowCls}>
               Edit profile <IconChevronRight size={22} className="text-muted-ink" />
             </Link>
+            <Link to="/terms" className={rowCls}>
+              Terms and Conditions <IconChevronRight size={22} className="text-muted-ink" />
+            </Link>
             <a href={`mailto:${HELP_EMAIL}?subject=CampusLost%26Found%20feedback`} className={rowCls}>
               Help and feedback <IconChevronRight size={22} className="text-muted-ink" />
             </a>

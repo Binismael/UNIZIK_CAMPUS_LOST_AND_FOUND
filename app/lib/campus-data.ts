@@ -19,6 +19,7 @@ export type Item = {
   status: ItemStatus;
   foundAt: string;
   photo: string | null;
+  photoHidden: boolean;
   isMine: boolean;
 };
 
@@ -52,8 +53,10 @@ function friendlyError(err: { message?: string; code?: string } | null, fallback
   return new Error(msg || fallback);
 }
 
-async function toItems(rows: ItemLike[], uid: string | undefined): Promise<Item[]> {
-  const paths = [...new Set(rows.map((r) => r.photo_path).filter((p): p is string => Boolean(p)))];
+// Photos are private: only the finder and an approved claimant may see them.
+async function toItems(rows: ItemLike[], uid: string | undefined, approvedIds: ReadonlySet<string> = new Set()): Promise<Item[]> {
+  const canSee = (r: ItemLike) => r.finder_id === uid || approvedIds.has(r.id);
+  const paths = [...new Set(rows.filter(canSee).map((r) => r.photo_path).filter((p): p is string => Boolean(p)))];
   const urls = new Map<string, string>();
   if (paths.length) {
     const { data } = await supabase.storage.from("item-photos").createSignedUrls(paths, 60 * 60);
@@ -71,7 +74,8 @@ async function toItems(rows: ItemLike[], uid: string | undefined): Promise<Item[
     pin: r.location_lat != null && r.location_lng != null ? { lat: r.location_lat, lng: r.location_lng } : null,
     status: r.status,
     foundAt: r.found_at,
-    photo: r.photo_path ? urls.get(r.photo_path) ?? null : null,
+    photo: r.photo_path && canSee(r) ? urls.get(r.photo_path) ?? null : null,
+    photoHidden: Boolean(r.photo_path) && !canSee(r),
     isMine: r.finder_id === uid,
   }));
 }
@@ -232,8 +236,9 @@ export function useItem(id: string) {
       ]);
       if (itemRes.error) throw friendlyError(itemRes.error);
       if (!itemRes.data) return null;
-      const [item] = await toItems([itemRes.data], uid);
-      return { item: item!, myClaim: claimRes.data as { id: string; status: ClaimStatus } | null };
+      const myClaim = claimRes.data as { id: string; status: ClaimStatus } | null;
+      const [item] = await toItems([itemRes.data], uid, new Set(myClaim?.status === "approved" ? [id] : []));
+      return { item: item!, myClaim };
     },
   });
 }
@@ -357,7 +362,9 @@ export function useMyClaims() {
         .eq("claimant_id", uid!)
         .order("created_at", { ascending: false });
       if (error) throw friendlyError(error);
-      const items = await toItems(data.map((c) => c.item as ItemLike), uid);
+      const rows = data.map((c) => c.item as ItemLike);
+      const approved = new Set(data.filter((c) => c.status === "approved").map((c) => (c.item as ItemLike).id));
+      const items = await toItems(rows, uid, approved);
       return data.map((c, i) => ({ id: c.id, status: c.status, item: items[i]! }));
     },
   });
@@ -457,7 +464,8 @@ export function useHandoverContact(claimId: string) {
         .maybeSingle();
       if (error) throw friendlyError(error);
       if (!claim) return null;
-      const [item] = await toItems([claim.item as ItemLike], uid);
+      const claimItem = claim.item as ItemLike;
+      const [item] = await toItems([claimItem], uid, new Set(claim.status === "approved" ? [claimItem.id] : []));
       let contact: { fullName: string; phone: string; residence: string } | null = null;
       if (claim.status === "approved") {
         const { data } = await supabase.rpc("get_handover_contact", { p_claim_id: claimId });

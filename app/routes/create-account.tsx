@@ -47,7 +47,7 @@ function CreateAccountBody({ twoColumn, stepped = false }: { twoColumn: boolean;
 
   return (
     <div className="flex flex-col gap-4">
-      <ProfileForm mode="create" submitLabel="Create account" submitting={busy} onSubmit={onSubmit} twoColumn={twoColumn} stepped={stepped} />
+      <ProfileForm mode="create" submitLabel="Create account" submitting={busy} onSubmit={onSubmit} twoColumn={twoColumn} stepped={stepped} requireTerms />
       <p className="text-center text-[17px] text-muted-ink">
         Already have an account?{" "}
         <Link to="/signin" className="font-bold text-brand hover:underline">

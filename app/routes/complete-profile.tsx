@@ -60,6 +60,7 @@ export default function CompleteProfile() {
           email={email}
           defaults={{ fullName: name }}
           submitLabel="Finish and continue"
+          requireTerms
           submitting={save.isPending}
           onSubmit={({ email: _e, password: _p, ...values }) =>
             save.mutate(values, {
